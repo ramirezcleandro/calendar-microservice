@@ -1,0 +1,62 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.5.2.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{0AB3BF05-4346-4AA6-1389-037BE0695223}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{827E0CD3-B72D-47B6-A68D-7590B98EB39B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CalendarioEntregas.Tests", "tests\CalendarioEntregas.Tests\CalendarioEntregas.Tests.csproj", "{2F458241-2CA3-3447-0797-8A1CF29ECFAA}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "CalendarioEntregas", "CalendarioEntregas", "{C47295EB-0157-A399-2AD2-D84AC25889A8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CalendarioEntregas.Application", "src\CalendarioEntregas\CalendarioEntregas.Application\CalendarioEntregas.Application.csproj", "{077132BC-4CC1-DFCD-48B0-33E6D4279AB0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CalendarioEntregas.Domain", "src\CalendarioEntregas\CalendarioEntregas.Domain\CalendarioEntregas.Domain.csproj", "{442CD678-B64B-E07D-FA9A-C8AB70D24EBB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CalendarioEntregas.Infrastructure", "src\CalendarioEntregas\CalendarioEntregas.Infrastructure\CalendarioEntregas.Infrastructure.csproj", "{A4782906-B04A-97E1-957E-0E53074930C3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CalendarioEntregas.WebApi", "src\CalendarioEntregas\CalendarioEntregas.WebApi\CalendarioEntregas.WebApi.csproj", "{B0B99727-2209-F4B3-10C1-3F757F57DFD5}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{2F458241-2CA3-3447-0797-8A1CF29ECFAA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2F458241-2CA3-3447-0797-8A1CF29ECFAA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2F458241-2CA3-3447-0797-8A1CF29ECFAA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2F458241-2CA3-3447-0797-8A1CF29ECFAA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{077132BC-4CC1-DFCD-48B0-33E6D4279AB0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{077132BC-4CC1-DFCD-48B0-33E6D4279AB0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{077132BC-4CC1-DFCD-48B0-33E6D4279AB0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{077132BC-4CC1-DFCD-48B0-33E6D4279AB0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{442CD678-B64B-E07D-FA9A-C8AB70D24EBB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{442CD678-B64B-E07D-FA9A-C8AB70D24EBB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{442CD678-B64B-E07D-FA9A-C8AB70D24EBB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{442CD678-B64B-E07D-FA9A-C8AB70D24EBB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A4782906-B04A-97E1-957E-0E53074930C3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A4782906-B04A-97E1-957E-0E53074930C3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A4782906-B04A-97E1-957E-0E53074930C3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A4782906-B04A-97E1-957E-0E53074930C3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B0B99727-2209-F4B3-10C1-3F757F57DFD5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B0B99727-2209-F4B3-10C1-3F757F57DFD5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B0B99727-2209-F4B3-10C1-3F757F57DFD5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B0B99727-2209-F4B3-10C1-3F757F57DFD5}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{2F458241-2CA3-3447-0797-8A1CF29ECFAA} = {0AB3BF05-4346-4AA6-1389-037BE0695223}
+		{C47295EB-0157-A399-2AD2-D84AC25889A8} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
+		{077132BC-4CC1-DFCD-48B0-33E6D4279AB0} = {C47295EB-0157-A399-2AD2-D84AC25889A8}
+		{442CD678-B64B-E07D-FA9A-C8AB70D24EBB} = {C47295EB-0157-A399-2AD2-D84AC25889A8}
+		{A4782906-B04A-97E1-957E-0E53074930C3} = {C47295EB-0157-A399-2AD2-D84AC25889A8}
+		{B0B99727-2209-F4B3-10C1-3F757F57DFD5} = {C47295EB-0157-A399-2AD2-D84AC25889A8}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {789D25F2-35AB-47EA-A86F-70CB8F52C078}
+	EndGlobalSection
+EndGlobal

@@ -1,0 +1,46 @@
+version: "3.9"
+
+services:
+  calendario-postgres:
+    image: postgres:16
+    container_name: calendario-postgres
+    restart: always
+    environment:
+      POSTGRES_DB: calendario_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    networks:
+      - calendario_net
+    volumes:
+      - calendario_pgdata:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d calendario_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  calendario-webapi:
+    build:
+      context: .
+      dockerfile: CalendarioEntregas.WebApi/Dockerfile
+    container_name: calendario-webapi
+    restart: unless-stopped
+    ports:
+      - "7020:7020"
+    depends_on:
+      calendario-postgres:
+        condition: service_healthy
+    environment:
+      ConnectionStrings__CalendarioDatabase: "Host=calendario-postgres;Port=5432;Database=calendario_db;Username=postgres;Password=postgres;"
+      ASPNETCORE_ENVIRONMENT: Development
+    networks:
+      - calendario_net
+
+networks:
+  calendario_net:
+    driver: bridge
+
+volumes:
+  calendario_pgdata:

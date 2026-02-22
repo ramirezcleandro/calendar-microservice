@@ -1,0 +1,35 @@
+## Ignorar archivos de compilación
+bin/
+obj/
+*.dll
+*.exe
+*.pdb
+
+## Visual Studio
+.vs/
+*.user
+*.suo
+*.sln.docstates
+
+## Entity Framework Migrations
+Migrations/
+
+## Dependencies
+packages/
+node_modules/
+
+## Logs
+logs/
+*.log
+
+## IDE
+.vscode/
+.idea/
+
+## OS
+.DS_Store
+Thumbs.db
+
+## Temporal
+*.tmp
+temp/
