@@ -9,10 +9,12 @@ using CalendarioEntregas.Application.Calendario.ObtenerProximaEntrega;
 using CalendarioEntregas.Application.Calendario.ObtenerDireccionesActivas;
 using CalendarioEntregas.Application.Calendario.DesactivarCalendario;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CalendarioEntregas.WebApi.Controllers
 {
+    [Authorize]
     [Route("api/[controller]")]
     [ApiController]
     public class CalendarioController : ControllerBase

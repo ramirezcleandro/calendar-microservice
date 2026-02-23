@@ -1,6 +1,8 @@
+using CalendarioEntregas.Domain.Abstractions;
 using CalendarioEntregas.Domain.Agregados;
+using CalendarioEntregas.Infrastructure.Outbox;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using System.Text.Json;
 
 namespace CalendarioEntregas.Infrastructure.Persistence
 {
@@ -8,9 +10,39 @@ namespace CalendarioEntregas.Infrastructure.Persistence
     {
         public DbSet<CalendarioEntrega> Calendarios { get; set; } = null!;
         public DbSet<Direccion> Direcciones { get; set; } = null!;
+        public DbSet<OutboxMessage> OutboxMessages { get; set; } = null!;
 
         public CalendarioDbContext(DbContextOptions<CalendarioDbContext> options) : base(options)
         {
+        }
+
+        public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+        {
+            // Recopilar todos los domain events de los agregados tracked
+            var outboxMessages = ChangeTracker
+                .Entries<AggregateRoot>()
+                .SelectMany(entry => entry.Entity.DomainEvents)
+                .Select(domainEvent => new OutboxMessage
+                {
+                    Id = Guid.NewGuid(),
+                    Type = domainEvent.GetType().Name,
+                    Payload = JsonSerializer.Serialize(domainEvent, domainEvent.GetType()),
+                    OccurredOnUtc = DateTime.UtcNow
+                })
+                .ToList();
+
+            // Limpiar los domain events de los agregados
+            ChangeTracker
+                .Entries<AggregateRoot>()
+                .ToList()
+                .ForEach(entry => entry.Entity.ClearDomainEvents());
+
+            // Agregar los mensajes al Outbox
+            if (outboxMessages.Any())
+                OutboxMessages.AddRange(outboxMessages);
+
+            // Persistir todo en una sola transacción
+            return await base.SaveChangesAsync(cancellationToken);
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -63,6 +95,21 @@ namespace CalendarioEntregas.Infrastructure.Persistence
                 entity.HasIndex(d => new { d.CalendarioId, d.Fecha }).IsUnique();
 
                 entity.ToTable("Direcciones");
+            });
+
+            // Configurar OutboxMessage
+            modelBuilder.Entity<OutboxMessage>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.Id).ValueGeneratedNever();
+                entity.Property(e => e.Type).IsRequired();
+                entity.Property(e => e.Payload).IsRequired();
+                entity.Property(e => e.OccurredOnUtc).IsRequired();
+                entity.Property(e => e.ProcessedOnUtc);
+
+                entity.HasIndex(e => e.ProcessedOnUtc);
+
+                entity.ToTable("OutboxMessages");
             });
         }
     }

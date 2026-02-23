@@ -1,7 +1,10 @@
 using CalendarioEntregas.Domain.Repositories;
 using CalendarioEntregas.Domain.Abstractions;
+using CalendarioEntregas.Infrastructure.Messaging.Consumers;
+using CalendarioEntregas.Infrastructure.Outbox;
 using CalendarioEntregas.Infrastructure.Persistence;
 using CalendarioEntregas.Infrastructure.Repositories;
+using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -34,6 +37,29 @@ namespace CalendarioEntregas.Infrastructure
 
             services.AddScoped<ICalendarioEntregaRepository, CalendarioEntregaRepository>();
             services.AddScoped<IUnitOfWork, UnitOfWork>();
+
+            // MassTransit con RabbitMQ
+            services.AddMassTransit(x =>
+            {
+                // Consumer: escucha eventos de otros microservicios
+                x.AddConsumer<PlanAlimenticioCreadoConsumer>();
+
+                x.UsingRabbitMq((ctx, cfg) =>
+                {
+                    cfg.Host(
+                        configuration["RabbitMq:Host"] ?? "localhost",
+                        configuration["RabbitMq:VirtualHost"] ?? "/",
+                        h =>
+                        {
+                            h.Username(configuration["RabbitMq:Username"] ?? "guest");
+                            h.Password(configuration["RabbitMq:Password"] ?? "guest");
+                        });
+
+                    cfg.ConfigureEndpoints(ctx);
+                });
+            });
+
+            services.AddHostedService<OutboxProcessorService>();
 
             return services;
         }

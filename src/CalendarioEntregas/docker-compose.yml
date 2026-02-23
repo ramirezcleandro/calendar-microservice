@@ -1,6 +1,6 @@
-version: "3.9"
-
 services:
+
+  # ─── Base de datos del microservicio ────────────────────────────────────────
   calendario-postgres:
     image: postgres:16
     container_name: calendario-postgres
@@ -10,7 +10,7 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
     networks:
-      - calendario_net
+      - nutricenter_net
     volumes:
       - calendario_pgdata:/var/lib/postgresql/data
     ports:
@@ -21,6 +21,7 @@ services:
       timeout: 5s
       retries: 10
 
+  # ─── Microservicio Calendario de Entregas ────────────────────────────────────
   calendario-webapi:
     build:
       context: .
@@ -35,12 +36,20 @@ services:
     environment:
       ConnectionStrings__CalendarioDatabase: "Host=calendario-postgres;Port=5432;Database=calendario_db;Username=postgres;Password=postgres;"
       ASPNETCORE_ENVIRONMENT: Development
+      RabbitMq__Host: "rabbitmq"          # servicio compartido del api-gateway
+      RabbitMq__VirtualHost: "/"
+      RabbitMq__Username: "guest"
+      RabbitMq__Password: "guest"
+      Jwt__Key: "nurtricenter-clave-secreta-de-al-menos-32-caracteres"
+      Jwt__Issuer: "nurtricenter-auth"
+      Jwt__Audience: "nurtricenter-api"
     networks:
-      - calendario_net
+      - nutricenter_net
 
 networks:
-  calendario_net:
-    driver: bridge
+  nutricenter_net:
+    external: true          # red creada por el api-gateway docker-compose
+    name: nutricenter_net
 
 volumes:
   calendario_pgdata:

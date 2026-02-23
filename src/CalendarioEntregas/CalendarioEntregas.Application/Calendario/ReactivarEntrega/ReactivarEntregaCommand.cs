@@ -32,16 +32,7 @@ namespace CalendarioEntregas.Application.Calendario.ReactivarEntrega
                     );
                 }
 
-                var direccion = calendario.ObtenerDireccion(request.Fecha);
-                if (direccion == null)
-                {
-                    return Result<Unit>.Failure(
-                        Error.ItemNotFound($"No existe dirección para la fecha {request.Fecha}")
-                    );
-                }
-
-                direccion.ReactivarEntrega();
-
+                calendario.ReactivarEntrega(request.Fecha);
                 await _repository.UpdateAsync(calendario);
                 await _unitOfWork.CommitAsync(cancellationToken);
 

@@ -1,233 +1,283 @@
-# Microservicio Calendario de Entregas
+# Microservicio: Calendario de Entregas
 
-Este es un microservicio independiente que gestiona calendarios de entregas para pacientes en el sistema de Nur-tricenter.
+Gestiona los calendarios de entrega de alimentos para pacientes del sistema NutriCenter.
 
-## Características
+**Stack:** .NET 8 · PostgreSQL · RabbitMQ · MassTransit · Docker
 
-- ✅ Creación de calendarios de entrega basados en planes alimenticios
-- ✅ Agregación de direcciones de entrega por día
-- ✅ Modificación de direcciones con validación de 2 días de anticipación
-- ✅ Cancelación de entregas con validación de 2 días de anticipación
-- ✅ Reactivación de entregas canceladas con validación de 2 días de anticipación
-- ✅ Consulta de próxima entrega
-- ✅ Consulta de direcciones activas
-- ✅ Desactivación de calendarios
-- ✅ Consulta de estado del calendario y próximas entregas
-- ✅ Geolocalización (Latitud/Longitud) para cada dirección
+---
 
-## Estructura del Proyecto
+## Levantar el sistema
 
-### Domain (Dominio - Reglas de Negocio)
-- **Agregados**: `CalendarioEntrega`, `Direccion`
-- **Value Objects**: `Latitud`, `Longitud`
-- **Eventos de Dominio**: `CalendarioCreado`, `DireccionAgregada`, `DireccionModificada`, `EntregaCancelada`
-- **Repositorios**: `ICalendarioEntregaRepository`
-
-### Application (Casos de Uso)
-- **Commands**:
-  - `CreateCalendarioCommand`: Crea un nuevo calendario
-  - `AgregarDireccionCommand`: Agrega una dirección a un día
-  - `ModificarDireccionCommand`: Modifica una dirección (con validación de 2 días)
-  - `MarcarDiaNoEntregaCommand`: Marca un día como no entregable
-  - `ReactivarEntregaCommand`: Reactiva un día marcado como no entregable
-  - `DesactivarCalendarioCommand`: Desactiva un calendario
-
-- **Queries**:
-  - `GetCalendarioQuery`: Obtiene detalles de un calendario
-  - `ListarCalendariosQuery`: Lista calendarios (con filtro opcional por paciente)
-  - `ObtenerProximaEntregaQuery`: Obtiene la próxima entrega activa
-  - `ObtenerDireccionesActivasQuery`: Obtiene todas las direcciones activas desde hoy
-
-### Infrastructure (Persistencia)
-- **DbContext**: `CalendarioDbContext` (PostgreSQL)
-- **Repository**: `CalendarioEntregaRepository`
-- **Unit of Work**: Para transacciones
-
-### WebApi (API REST)
-- **Controller**: `CalendarioController` con endpoints protegidos
-
-## Endpoints
-
-### Crear Calendario
-```
-POST /api/calendario/crear
-Content-Type: application/json
-
-{
-  "pacienteId": "guid",
-  "planAlimenticioId": "guid",
-  "fechaInicio": "2025-02-01",
-  "fechaFin": "2025-02-15"
-}
-```
-
-### Agregar Dirección
-```
-POST /api/calendario/{calendarioId}/agregar-direccion
-Content-Type: application/json
-
-{
-  "fecha": "2025-02-05",
-  "direccion": "Av. Principal 123",
-  "referencias": "Frente al parque",
-  "latitud": -12.0464,
-  "longitud": -77.0428
-}
-```
-
-### Modificar Dirección (2 días de anticipación requeridos)
-```
-PUT /api/calendario/{calendarioId}/modificar-direccion
-Content-Type: application/json
-
-{
-  "fecha": "2025-02-05",
-  "nuevaDireccion": "Av. Nueva 456",
-  "referencias": "Cerca de la estación",
-  "latitud": -12.0500,
-  "longitud": -77.0500
-}
-```
-
-### Marcar No Entrega (2 días de anticipación requeridos)
-```
-POST /api/calendario/{calendarioId}/marcar-no-entrega
-Content-Type: application/json
-
-{
-  "fecha": "2025-02-05"
-}
-```
-
-### Reactivar Entrega (2 días de anticipación requeridos)
-```
-POST /api/calendario/{calendarioId}/reactivar-entrega
-Content-Type: application/json
-
-{
-  "fecha": "2025-02-05"
-}
-```
-
-### Obtener Próxima Entrega
-```
-GET /api/calendario/{calendarioId}/proxima-entrega
-```
-
-Respuesta:
-```json
-{
-  "id": "guid",
-  "fecha": "2025-02-05",
-  "direccion": "Av. Principal 123",
-  "referencias": "Frente al parque",
-  "latitud": -12.0464,
-  "longitud": -77.0428,
-  "esEntregaActiva": true,
-  "diasRestantes": 5
-}
-```
-
-### Obtener Direcciones Activas
-```
-GET /api/calendario/{calendarioId}/direcciones-activas
-```
-
-### Desactivar Calendario
-```
-POST /api/calendario/{calendarioId}/desactivar
-```
-
-### Obtener Calendario
-```
-GET /api/calendario/{calendarioId}
-```
-
-### Listar Calendarios
-```
-GET /api/calendario?pacienteId={pacienteId}
-```
-
-## Estructura de Carpetas
-
-```
-src/CalendarioEntregas/
-├── CalendarioEntregas.Domain/
-│   ├── Agregados/
-│   ├── ValueObjects/
-│   ├── Eventos/
-│   └── Repositories/
-├── CalendarioEntregas.Application/
-│   ├── Calendario/
-│   │   ├── CreateCalendario/
-│   │   ├── AgregarDireccion/
-│   │   ├── ModificarDireccion/
-│   │   ├── MarcarDiaNoEntrega/
-│   │   └── Queries/
-│   └── DependencyInjection.cs
-├── CalendarioEntregas.Infrastructure/
-│   ├── Persistence/
-│   ├── Repositories/
-│   ├── DependencyInjection.cs
-│   └── UnitOfWork.cs
-└── CalendarioEntregas.WebApi/
-    ├── Controllers/
-    ├── appsettings.json
-    └── Program.cs
-
-tests/CalendarioEntregas.Tests/
-├── Calendario/
-│   ├── CreateCalendarioHandlerTests.cs
-│   ├── AgregarDireccionHandlerTests.cs
-│   └── MarcarDiaNoEntregaHandlerTests.cs
-```
-
-## Tecnologías
-
-- **.NET 8.0**
-- **Entity Framework Core** (PostgreSQL)
-- **MediatR** (CQRS)
-- **xUnit** (Testing)
-- **Moq** (Mocking)
-- **FluentAssertions** (Assertions)
-
-## Reglas de Negocio
-
-1. **Validación de Días**: Solo se pueden modificar direcciones o cancelar entregas con **2 días de anticipación**
-2. **Rango de Fechas**: Las direcciones deben estar dentro del rango de fechas del calendario
-3. **Unicidad**: Solo puede haber una dirección por fecha en cada calendario
-4. **Validación Geográfica**: 
-   - Latitud debe estar entre -90 y 90
-   - Longitud debe estar entre -180 y 180
-
-## Configuración
-
-### Variables de Entorno
-```
-ConnectionStrings__CalendarioDatabase=Host=localhost;Port=5432;Database=calendario_db;Username=postgres;Password=postgres;
-ASPNETCORE_ENVIRONMENT=Development
-```
-
-### appsettings.json
-```json
-{
-  "ConnectionStrings": {
-    "CalendarioDatabase": "Host=localhost;Port=5432;Database=calendario_db;Username=postgres;Password=postgres;"
-  }
-}
-```
-
-## Ejecución
-
-### Local
+> Primero levantar el API Gateway (crea la red compartida y el RabbitMQ):
 ```bash
-dotnet run --project src/CalendarioEntregas/CalendarioEntregas.WebApi
+cd ../../../repos/api-gateway
+docker-compose up -d
 ```
 
-### Con Docker
+Luego este microservicio:
 ```bash
-docker-compose -f src/CalendarioEntregas/docker-compose.yml up
+cd src/CalendarioEntregas
+docker-compose up -d
 ```
+
+| Recurso | URL |
+|---------|-----|
+| API (via Gateway) | http://localhost:8080/api/calendario |
+| Swagger (directo) | http://localhost:7020/swagger |
+| RabbitMQ Management | http://localhost:15672 (guest/guest) |
+
+---
+
+## Autenticación
+
+Todos los endpoints requieren `Bearer Token`. El token se valida con:
+
+```
+Issuer:   nurtricenter-auth
+Audience: nurtricenter-api
+Key:      nurtricenter-clave-secreta-de-al-menos-32-caracteres
+```
+
+Incluir en cada request:
+```
+Authorization: Bearer <token>
+```
+
+---
+
+## Patrón Transactional Outbox
+
+### Por qué existe
+
+Publicar un evento a RabbitMQ y guardar el dato en la BD son dos operaciones distintas. Si el proceso muere entre una y la otra, el evento se pierde. El patrón Outbox resuelve esto: **guarda el evento en la misma BD y en la misma transacción**, y lo publica a RabbitMQ en un paso separado.
+
+### Cómo está implementado
+
+El patrón se divide en tres piezas:
+
+---
+
+#### Pieza 1 — La tabla `OutboxMessages`
+
+```
+Infrastructure/Outbox/OutboxMessage.cs
+```
+
+Cada fila representa un evento pendiente de publicar:
+
+| Columna | Tipo | Descripción |
+|---------|------|-------------|
+| `Id` | Guid | Identificador único |
+| `Type` | string | Nombre del domain event (ej: `"CalendarioCreado"`) |
+| `Payload` | string | El evento serializado en JSON |
+| `OccurredOnUtc` | DateTime | Cuándo ocurrió |
+| `ProcessedOnUtc` | DateTime? | `null` = pendiente · fecha = ya publicado |
+
+---
+
+#### Pieza 2 — Escritura al Outbox (mismo `SaveChanges`)
+
+```
+Infrastructure/Persistence/CalendarioDbContext.cs
+```
+
+Se sobreescribe `SaveChangesAsync()`. Antes de persistir, EF Core inspecciona todos los agregados y extrae sus `DomainEvents`:
+
+```csharp
+// Flujo dentro de SaveChangesAsync():
+1. Recopilar DomainEvents de todos los AggregateRoot trackeados
+2. Serializar cada evento a JSON → OutboxMessage
+3. Insertar los OutboxMessages en la tabla
+4. base.SaveChangesAsync()  ← todo en UNA SOLA transacción
+```
+
+El resultado: si la transacción falla, el dato de negocio Y el evento se revierten juntos. Es imposible que uno se guarde sin el otro.
+
+---
+
+#### Pieza 3 — Lectura y publicación a RabbitMQ (background service)
+
+```
+Infrastructure/Outbox/OutboxProcessorService.cs
+```
+
+Un `BackgroundService` que se ejecuta cada **5 segundos**:
+
+```
+1. SELECT TOP 20 FROM OutboxMessages WHERE ProcessedOnUtc IS NULL
+2. Para cada mensaje:
+   a. Deserializar el JSON al tipo de evento correspondiente
+   b. publishEndpoint.Publish(...) → RabbitMQ
+   c. ProcessedOnUtc = DateTime.UtcNow
+3. SaveChangesAsync() → marca todos como procesados
+```
+
+Si RabbitMQ está caído, el servicio logea el error y reintenta en el próximo ciclo. Los mensajes nunca se pierden.
+
+---
+
+### Flujo completo de un evento
+
+```
+[HTTP Request]
+     │
+     ▼
+[Command Handler]
+  calendario.AgregarDireccion(...)
+  → Raise(new DireccionAgregada(...))   ← se acumula en memoria
+     │
+     ▼
+[UnitOfWork.CommitAsync()]
+  → SaveChangesAsync()
+     ┌──────────────────────────────────────┐
+     │  BEGIN TRANSACTION                    │
+     │   INSERT INTO Direcciones (...)       │  ← dato de negocio
+     │   INSERT INTO OutboxMessages (...)    │  ← evento serializado
+     │  COMMIT                               │
+     └──────────────────────────────────────┘
+     │
+     │  (cada 5 segundos)
+     ▼
+[OutboxProcessorService]
+  SELECT OutboxMessages WHERE ProcessedOnUtc IS NULL
+     │
+     ▼
+  publishEndpoint.Publish(DireccionAgregadaIntegrationEvent)
+     │
+     ▼
+  RabbitMQ Exchange
+     │
+     ▼
+  [Microservicio de Logística consume el evento]
+```
+
+---
+
+## Eventos que este microservicio PUBLICA
+
+Otros microservicios pueden suscribirse a estos eventos desde RabbitMQ.
+
+| Evento | Cuándo se genera | Payload |
+|--------|-----------------|---------|
+| `CalendarioCreadoIntegrationEvent` | Se crea un calendario | `CalendarioId, PacienteId, PlanAlimenticioId, FechaInicio, FechaFin` |
+| `DireccionAgregadaIntegrationEvent` | Se agrega una dirección de entrega | `CalendarioId, DireccionId, Fecha, Direccion, Latitud, Longitud` |
+| `DireccionModificadaIntegrationEvent` | Se modifica una dirección | `CalendarioId, DireccionId, Fecha, NuevaDireccion, NuevaLatitud, NuevaLongitud` |
+| `EntregaCanceladaIntegrationEvent` | Se marca un día como no entrega | `CalendarioId, DireccionId, Fecha` |
+| `EntregaReactivadaIntegrationEvent` | Se reactiva una entrega cancelada | `CalendarioId, DireccionId, Fecha` |
+| `CalendarioDesactivadoIntegrationEvent` | Se desactiva el calendario | `CalendarioId, PacienteId` |
+
+---
+
+## Eventos que este microservicio CONSUME
+
+| Evento | Publicado por | Acción automática |
+|--------|--------------|-------------------|
+| `PlanAlimenticioCreadoIntegrationEvent` | MS Planes Alimenticios | Crea el calendario de entregas automáticamente |
+
+### Contrato requerido del evento entrante
+
+El microservicio de Planes Alimenticios **debe publicar exactamente este tipo**:
+
+```csharp
+public record PlanAlimenticioCreadoIntegrationEvent(
+    Guid PlanAlimenticioId,
+    Guid PacienteId,
+    DateOnly FechaInicio,
+    DateOnly FechaFin,
+    DateTime OccurredOnUtc
+);
+```
+
+> El nombre del `record` debe ser idéntico en ambos microservicios. MassTransit rutea por nombre de tipo.
+
+---
+
+## Cómo conectar otro microservicio al RabbitMQ compartido
+
+El RabbitMQ lo levanta el API Gateway. Para conectarse desde otro microservicio, agregar en su `docker-compose.yml`:
+
+```yaml
+services:
+  mi-microservicio:
+    # ...
+    environment:
+      - RabbitMq__Host=rabbitmq
+      - RabbitMq__Username=guest
+      - RabbitMq__Password=guest
+    networks:
+      - nutricenter_net
+
+networks:
+  nutricenter_net:
+    external: true   # reutilizar la red existente, no crear una nueva
+```
+
+Y en su código (ejemplo .NET con MassTransit):
+
+```csharp
+// Registrar el consumer
+services.AddMassTransit(x =>
+{
+    x.AddConsumer<MiConsumer>();
+
+    x.UsingRabbitMq((ctx, cfg) =>
+    {
+        cfg.Host("rabbitmq", "/", h =>
+        {
+            h.Username("guest");
+            h.Password("guest");
+        });
+        cfg.ConfigureEndpoints(ctx); // crea la queue automáticamente
+    });
+});
+
+// Implementar el consumer
+public class MiConsumer : IConsumer<DireccionAgregadaIntegrationEvent>
+{
+    public async Task Consume(ConsumeContext<DireccionAgregadaIntegrationEvent> context)
+    {
+        var evento = context.Message;
+        // usar evento.Fecha, evento.Latitud, evento.Longitud, etc.
+    }
+}
+```
+
+---
+
+## Estructura del proyecto
+
+```
+CalendarioEntregas.Domain/
+├── Agregados/          → CalendarioEntrega (AggregateRoot), Direccion
+├── Eventos/            → DomainEvents (CalendarioCreado, DireccionAgregada, ...)
+├── ValueObjects/       → Latitud, Longitud
+└── Abstractions/       → AggregateRoot, IDomainEvent, Result, Error
+
+CalendarioEntregas.Application/
+└── Calendario/         → Commands y Queries (CQRS con MediatR)
+
+CalendarioEntregas.Infrastructure/
+├── Outbox/             → OutboxMessage.cs, OutboxProcessorService.cs
+├── Messaging/
+│   ├── Consumers/      → PlanAlimenticioCreadoConsumer.cs
+│   └── IntegrationEvents/  → Contratos publicados y recibidos
+├── Persistence/        → CalendarioDbContext.cs (escribe al Outbox en SaveChanges)
+└── Repositories/
+
+CalendarioEntregas.WebApi/
+└── Controllers/        → CalendarioController (todos con [Authorize])
+```
+
+---
+
+## Reglas de negocio
+
+1. Solo se puede modificar, cancelar o reactivar una entrega con **2 días de anticipación**
+2. Las direcciones deben estar dentro del rango de fechas del calendario
+3. Solo puede haber **una dirección por fecha** en cada calendario
+4. Latitud: `-90` a `90` · Longitud: `-180` a `180`
+
+---
 
 ## Tests
 
@@ -235,28 +285,4 @@ docker-compose -f src/CalendarioEntregas/docker-compose.yml up
 dotnet test tests/CalendarioEntregas.Tests/
 ```
 
-### Tests Disponibles
-- `CreateCalendarioHandlerTests`: Pruebas para creación de calendarios
-- `AgregarDireccionHandlerTests`: Pruebas para agregar direcciones
-- `ModificarDireccionHandlerTests`: Pruebas para modificar direcciones
-- `MarcarDiaNoEntregaHandlerTests`: Pruebas para marcar días sin entrega
-- `ReactivarEntregaHandlerTests`: Pruebas para reactivar entregas
-- `ObtenerProximaEntregaHandlerTests`: Pruebas para obtener próxima entrega
-- `ObtenerDireccionesActivasHandlerTests`: Pruebas para obtener direcciones activas
-- `DesactivarCalendarioHandlerTests`: Pruebas para desactivar calendarios
-
-## Migraciones de Base de Datos
-
-Se incluye una migración inicial `InitialCreate` que crea las tablas `Calendarios` y `Direcciones`.
-
-### Aplicar Migraciones Localmente
-```bash
-# Crear la base de datos con las migraciones
-dotnet ef database update --project src/CalendarioEntregas/CalendarioEntregas.Infrastructure --context CalendarioDbContext
-
-# O crear una nueva migración
-dotnet ef migrations add NombreMigracion --project src/CalendarioEntregas/CalendarioEntregas.Infrastructure --context CalendarioDbContext
-```
-
-## Autor
-Microservicio desarrollado como parte del Trabajo Final - Sistema de Gestión Integral de Nur-tricenter
+Cubre: creación, agregar dirección, modificar, cancelar, reactivar, desactivar, próxima entrega, direcciones activas.

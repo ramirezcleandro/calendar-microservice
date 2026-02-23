@@ -37,18 +37,11 @@ namespace CalendarioEntregas.Application.Calendario.ModificarDireccion
                     );
                 }
 
-                var direccion = calendario.ObtenerDireccion(request.Fecha);
-                if (direccion == null)
-                {
-                    return Result<Unit>.Failure(
-                        Error.ItemNotFound($"No existe dirección para la fecha {request.Fecha}")
-                    );
-                }
-
                 var latitud = new Latitud(request.Latitud);
                 var longitud = new Longitud(request.Longitud);
 
-                direccion.Modificar(
+                calendario.ModificarDireccion(
+                    request.Fecha,
                     request.NuevaDireccion,
                     request.Referencias,
                     latitud,

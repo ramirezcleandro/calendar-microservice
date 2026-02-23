@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("CalendarioEntregas.Tests")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+7293f9670c9da734480d91afb05924fbf58161b9")]
 [assembly: System.Reflection.AssemblyProductAttribute("CalendarioEntregas.Tests")]
 [assembly: System.Reflection.AssemblyTitleAttribute("CalendarioEntregas.Tests")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

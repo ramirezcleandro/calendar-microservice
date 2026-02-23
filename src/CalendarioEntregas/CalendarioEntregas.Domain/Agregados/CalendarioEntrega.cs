@@ -1,3 +1,5 @@
+using CalendarioEntregas.Domain.Abstractions;
+using CalendarioEntregas.Domain.Eventos;
 using CalendarioEntregas.Domain.ValueObjects;
 
 namespace CalendarioEntregas.Domain.Agregados
@@ -5,7 +7,7 @@ namespace CalendarioEntregas.Domain.Agregados
     /// <summary>
     /// Agregado raíz que representa un calendario de entregas de un paciente
     /// </summary>
-    public class CalendarioEntrega
+    public class CalendarioEntrega : AggregateRoot
     {
         public Guid Id { get; private set; }
         public Guid PacienteId { get; private set; }
@@ -38,6 +40,8 @@ namespace CalendarioEntregas.Domain.Agregados
             FechaFin = fechaFin;
             FechaCreacion = DateTime.UtcNow;
             Activo = true;
+
+            Raise(new CalendarioCreado(Id, PacienteId, PlanAlimenticioId, FechaInicio, FechaFin));
         }
 
         /// <summary>
@@ -59,6 +63,39 @@ namespace CalendarioEntregas.Domain.Agregados
 
             var nuevaDireccion = new Direccion(Id, fecha, direccion, referencias, latitud, longitud);
             _direcciones.Add(nuevaDireccion);
+
+            Raise(new DireccionAgregada(Id, nuevaDireccion.Id, fecha, direccion, latitud.Valor, longitud.Valor));
+        }
+
+        /// <summary>
+        /// Modifica la dirección de un día y emite el evento correspondiente
+        /// </summary>
+        public void ModificarDireccion(
+            DateOnly fecha,
+            string nuevaDireccion,
+            string referencias,
+            Latitud latitud,
+            Longitud longitud)
+        {
+            var direccion = ObtenerDireccion(fecha)
+                ?? throw new InvalidOperationException($"No existe dirección para la fecha {fecha}");
+
+            direccion.Modificar(nuevaDireccion, referencias, latitud, longitud);
+
+            Raise(new DireccionModificada(Id, direccion.Id, fecha, nuevaDireccion, latitud.Valor, longitud.Valor));
+        }
+
+        /// <summary>
+        /// Marca un día como no entrega y emite el evento correspondiente
+        /// </summary>
+        public void MarcarDiaNoEntrega(DateOnly fecha)
+        {
+            var direccion = ObtenerDireccion(fecha)
+                ?? throw new InvalidOperationException($"No existe dirección para la fecha {fecha}");
+
+            direccion.MarcarNoEntrega();
+
+            Raise(new EntregaCancelada(Id, direccion.Id, fecha));
         }
 
         /// <summary>
@@ -114,11 +151,25 @@ namespace CalendarioEntregas.Domain.Agregados
         }
 
         /// <summary>
-        /// Desactiva el calendario
+        /// Reactiva una entrega previamente cancelada y emite el evento correspondiente
+        /// </summary>
+        public void ReactivarEntrega(DateOnly fecha)
+        {
+            var direccion = ObtenerDireccion(fecha)
+                ?? throw new InvalidOperationException($"No existe dirección para la fecha {fecha}");
+
+            direccion.ReactivarEntrega();
+
+            Raise(new EntregaReactivada(Id, direccion.Id, fecha));
+        }
+
+        /// <summary>
+        /// Desactiva el calendario y emite el evento correspondiente
         /// </summary>
         public void Desactivar()
         {
             Activo = false;
+            Raise(new CalendarioDesactivado(Id, PacienteId));
         }
     }
 }

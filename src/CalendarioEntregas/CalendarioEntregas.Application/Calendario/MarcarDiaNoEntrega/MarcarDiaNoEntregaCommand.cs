@@ -32,15 +32,7 @@ namespace CalendarioEntregas.Application.Calendario.MarcarDiaNoEntrega
                     );
                 }
 
-                var direccion = calendario.ObtenerDireccion(request.Fecha);
-                if (direccion == null)
-                {
-                    return Result<Unit>.Failure(
-                        Error.ItemNotFound($"No existe dirección para la fecha {request.Fecha}")
-                    );
-                }
-
-                direccion.MarcarNoEntrega();
+                calendario.MarcarDiaNoEntrega(request.Fecha);
 
                 await _repository.UpdateAsync(calendario);
                 await _unitOfWork.CommitAsync(cancellationToken);
