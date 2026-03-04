@@ -1,16 +1,15 @@
 using CalendarioEntregas.Domain.Repositories;
 using CalendarioEntregas.Domain.Abstractions;
 using CalendarioEntregas.Infrastructure.Messaging.Consumers;
-using CalendarioEntregas.Infrastructure.Messaging.IntegrationEvents;
-using CalendarioEntregas.Infrastructure.Outbox;
+using CalendarioEntregas.Infrastructure.Messaging.IntegrationEvents.ReceivedEvents;
 using CalendarioEntregas.Infrastructure.Persistence;
 using CalendarioEntregas.Infrastructure.Repositories;
-using MassTransit;
-using RabbitMQ.Client;
+using Joselct.Communication.RabbitMQ.Extensions;
+using Joselct.Outbox.EFCore.Extensions;
+using Joselct.Outbox.MediatR.Extensions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Polly;
 
 namespace CalendarioEntregas.Infrastructure
 {
@@ -21,66 +20,34 @@ namespace CalendarioEntregas.Infrastructure
             var connectionString = configuration.GetConnectionString("CalendarioDatabase")
                 ?? throw new InvalidOperationException("Connection string 'CalendarioDatabase' no encontrada.");
 
-            // Política de reintentos con backoff exponencial
-            var retryPolicy = Policy
-                .Handle<Exception>()
-                .WaitAndRetryAsync(
-                    retryCount: 5,
-                    sleepDurationProvider: attempt => TimeSpan.FromSeconds(Math.Pow(2, attempt)),
-                    onRetry: (exception, timespan, retryCount, context) =>
-                    {
-                        Console.WriteLine($"Retry {retryCount} después de {timespan.TotalSeconds}s: {exception.Message}");
-                    }
-                );
-
             services.AddDbContext<CalendarioDbContext>(options =>
-                options.UseNpgsql(connectionString)
-            );
+                options.UseNpgsql(connectionString));
 
             services.AddScoped<ICalendarioEntregaRepository, CalendarioEntregaRepository>();
             services.AddScoped<IUnitOfWork, UnitOfWork>();
 
-            // MassTransit con RabbitMQ
-            services.AddMassTransit(x =>
-            {
-                // Consumer: escucha eventos de otros microservicios
-                x.AddConsumer<PlanAlimenticioCreadoConsumer>();
+            // Outbox (Joselct)
+            services.AddOutboxEfCore<CalendarioDbContext>();
 
-                x.UsingRabbitMq((ctx, cfg) =>
-                {
-                    cfg.Host(
-                        configuration["RabbitMq:Host"] ?? "localhost",
-                        configuration["RabbitMq:VirtualHost"] ?? "/",
-                        h =>
-                        {
-                            h.Username(configuration["RabbitMq:Username"] ?? "admin");
-                            h.Password(configuration["RabbitMq:Password"] ?? "admin");
-                        });
+            // RabbitMQ (Joselct) — publisher + connection manager
+            services.AddRabbitMq(configuration);
 
-                    // Convención de exchanges: exchange único "calendario", tipo topic, durable
-                    cfg.Message<CalendarioCreadoIntegrationEvent>(x => x.SetEntityName("calendario"));
-                    cfg.Publish<CalendarioCreadoIntegrationEvent>(x => { x.ExchangeType = ExchangeType.Topic; x.Durable = true; });
+            // Consumer: escucha meal-plan.created desde ms-calendar-queue
+            services.AddRabbitMqConsumer<PlanAlimenticioCreadoIntegrationEvent, PlanAlimenticioCreadoConsumer>(
+                queueName: "ms-calendar-queue",
+                exchangeName: "meal-plans",
+                routingKey: "meal-plan.created",
+                declareQueue: false);
 
-                    cfg.Message<DireccionAgregadaIntegrationEvent>(x => x.SetEntityName("calendario"));
-                    cfg.Publish<DireccionAgregadaIntegrationEvent>(x => { x.ExchangeType = ExchangeType.Topic; x.Durable = true; });
+            // Consumer: escucha patient.* desde ms-calendar-queue (requerido por el binding de la infra)
+            services.AddRabbitMqConsumer<PatientIntegrationEvent, PatientEventConsumer>(
+                queueName: "ms-calendar-queue",
+                exchangeName: "patients",
+                routingKey: "patient.*",
+                declareQueue: false);
 
-                    cfg.Message<DireccionModificadaIntegrationEvent>(x => x.SetEntityName("calendario"));
-                    cfg.Publish<DireccionModificadaIntegrationEvent>(x => { x.ExchangeType = ExchangeType.Topic; x.Durable = true; });
-
-                    cfg.Message<EntregaCanceladaIntegrationEvent>(x => x.SetEntityName("calendario"));
-                    cfg.Publish<EntregaCanceladaIntegrationEvent>(x => { x.ExchangeType = ExchangeType.Topic; x.Durable = true; });
-
-                    cfg.Message<EntregaReactivadaIntegrationEvent>(x => x.SetEntityName("calendario"));
-                    cfg.Publish<EntregaReactivadaIntegrationEvent>(x => { x.ExchangeType = ExchangeType.Topic; x.Durable = true; });
-
-                    cfg.Message<CalendarioDesactivadoIntegrationEvent>(x => x.SetEntityName("calendario"));
-                    cfg.Publish<CalendarioDesactivadoIntegrationEvent>(x => { x.ExchangeType = ExchangeType.Topic; x.Durable = true; });
-
-                    cfg.ConfigureEndpoints(ctx);
-                });
-            });
-
-            services.AddHostedService<OutboxProcessorService>();
+            // Worker del outbox (polling y dispatch vía MediatR)
+            services.AddOutboxWorker();
 
             return services;
         }

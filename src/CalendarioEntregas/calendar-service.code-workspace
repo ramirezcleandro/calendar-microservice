@@ -8,6 +8,9 @@
 		},
 		{
 			"path": "../../../api_security"
+		},
+		{
+			"path": "../../../ms-infrastructure"
 		}
 	],
 	"settings": {}
