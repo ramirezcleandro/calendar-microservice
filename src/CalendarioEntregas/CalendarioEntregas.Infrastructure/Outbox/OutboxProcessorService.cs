@@ -91,7 +91,7 @@ namespace CalendarioEntregas.Infrastructure.Outbox
                         domainEvent.FechaInicio,
                         domainEvent.FechaFin,
                         occurredOnUtc
-                    ), cancellationToken);
+                    ), ctx => ctx.SetRoutingKey("calendario.creado"), cancellationToken);
                     break;
                 }
 
@@ -106,7 +106,7 @@ namespace CalendarioEntregas.Infrastructure.Outbox
                         domainEvent.Latitud,
                         domainEvent.Longitud,
                         occurredOnUtc
-                    ), cancellationToken);
+                    ), ctx => ctx.SetRoutingKey("calendario.direccion.agregada"), cancellationToken);
                     break;
                 }
 
@@ -121,7 +121,7 @@ namespace CalendarioEntregas.Infrastructure.Outbox
                         domainEvent.NuevaLatitud,
                         domainEvent.NuevaLongitud,
                         occurredOnUtc
-                    ), cancellationToken);
+                    ), ctx => ctx.SetRoutingKey("calendario.direccion.modificada"), cancellationToken);
                     break;
                 }
 
@@ -133,7 +133,7 @@ namespace CalendarioEntregas.Infrastructure.Outbox
                         domainEvent.DireccionId,
                         domainEvent.Fecha,
                         occurredOnUtc
-                    ), cancellationToken);
+                    ), ctx => ctx.SetRoutingKey("calendario.entrega.cancelada"), cancellationToken);
                     break;
                 }
 
@@ -145,7 +145,7 @@ namespace CalendarioEntregas.Infrastructure.Outbox
                         domainEvent.DireccionId,
                         domainEvent.Fecha,
                         occurredOnUtc
-                    ), cancellationToken);
+                    ), ctx => ctx.SetRoutingKey("calendario.entrega.reactivada"), cancellationToken);
                     break;
                 }
 
@@ -156,7 +156,7 @@ namespace CalendarioEntregas.Infrastructure.Outbox
                         domainEvent.CalendarioId,
                         domainEvent.PacienteId,
                         occurredOnUtc
-                    ), cancellationToken);
+                    ), ctx => ctx.SetRoutingKey("calendario.desactivado"), cancellationToken);
                     break;
                 }
             }

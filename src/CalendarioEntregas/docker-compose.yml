@@ -1,5 +1,26 @@
 services:
 
+  # ─── RabbitMQ (Broker del microservicio) ─────────────────────────────────────
+  calendario-rabbitmq:
+    image: rabbitmq:3.13-management
+    container_name: calendario-rabbitmq
+    restart: unless-stopped
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: admin
+      RABBITMQ_DEFAULT_PASS: admin
+    volumes:
+      - calendario_rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - calendario_net
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   # ─── Base de datos del microservicio ────────────────────────────────────────
   calendario-postgres:
     image: postgres:16
@@ -10,7 +31,7 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
     networks:
-      - nutricenter_net
+      - calendario_net
     volumes:
       - calendario_pgdata:/var/lib/postgresql/data
     ports:
@@ -33,23 +54,26 @@ services:
     depends_on:
       calendario-postgres:
         condition: service_healthy
+      calendario-rabbitmq:
+        condition: service_healthy
     environment:
       ConnectionStrings__CalendarioDatabase: "Host=calendario-postgres;Port=5432;Database=calendario_db;Username=postgres;Password=postgres;"
       ASPNETCORE_ENVIRONMENT: Development
-      RabbitMq__Host: "rabbitmq"          # servicio compartido del api-gateway
+      RabbitMq__Host: "calendario-rabbitmq"
       RabbitMq__VirtualHost: "/"
-      RabbitMq__Username: "guest"
-      RabbitMq__Password: "guest"
-      Jwt__Key: "nurtricenter-clave-secreta-de-al-menos-32-caracteres"
-      Jwt__Issuer: "nurtricenter-auth"
-      Jwt__Audience: "nurtricenter-api"
+      RabbitMq__Username: "admin"
+      RabbitMq__Password: "admin"
+      Jwt__Key: "DiplomadoMicroservicios2025SecretoJTWApiSecurity"
+      Jwt__Issuer: "api_security"
+      Jwt__Audience: "*"
     networks:
-      - nutricenter_net
+      - calendario_net
 
 networks:
-  nutricenter_net:
-    external: true          # red creada por el api-gateway docker-compose
-    name: nutricenter_net
+  calendario_net:
+    driver: bridge
+    name: calendario_net
 
 volumes:
   calendario_pgdata:
+  calendario_rabbitmq_data:

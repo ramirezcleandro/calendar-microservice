@@ -27,13 +27,16 @@ namespace CalendarioEntregas.Infrastructure.Messaging.Consumers
 
             _logger.LogInformation(
                 "Recibido PlanAlimenticioCreado: PlanId={PlanId}, PacienteId={PacienteId}",
-                evento.PlanAlimenticioId, evento.PacienteId);
+                evento.PlanId, evento.PacienteId);
+
+            var fechaInicio = DateOnly.FromDateTime(evento.FechaInicio);
+            var fechaFin = fechaInicio.AddDays(evento.Duracion);
 
             var command = new CreateCalendarioCommand(
                 evento.PacienteId,
-                evento.PlanAlimenticioId,
-                evento.FechaInicio,
-                evento.FechaFin
+                evento.PlanId,
+                fechaInicio,
+                fechaFin
             );
 
             var result = await _sender.Send(command);
@@ -48,7 +51,7 @@ namespace CalendarioEntregas.Infrastructure.Messaging.Consumers
             {
                 _logger.LogError(
                     "Error al crear calendario para PlanId={PlanId}: {Error}",
-                    evento.PlanAlimenticioId, result.Error!.Description);
+                    evento.PlanId, result.Error!.Description);
             }
         }
     }

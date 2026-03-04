@@ -1,6 +1,6 @@
 # Microservicio: Calendario de Entregas
 
-Gestiona los calendarios de entrega de alimentos para pacientes del sistema NutriCenter.
+Gestiona los calendarios de entrega de alimentos para pacientes del sistema NutriCenter. Cuando un plan alimenticio es creado, este microservicio genera automáticamente el calendario correspondiente y publica los cambios al resto del sistema a través de RabbitMQ.
 
 **Stack:** .NET 8 · PostgreSQL · RabbitMQ · MassTransit · Docker
 
@@ -8,13 +8,17 @@ Gestiona los calendarios de entrega de alimentos para pacientes del sistema Nutr
 
 ## Levantar el sistema
 
-> Primero levantar el API Gateway (crea la red compartida y el RabbitMQ):
+Este microservicio depende de la red compartida `nutricenter_net` y de RabbitMQ, ambos levantados por el **api-gateway**. El orden de arranque es:
+
+### 1. Levantar api-gateway (crea la red + api_security + RabbitMQ)
+
 ```bash
-cd ../../../repos/api-gateway
+cd ../api-gateway
 docker-compose up -d
 ```
 
-Luego este microservicio:
+### 2. Levantar el microservicio Calendario
+
 ```bash
 cd src/CalendarioEntregas
 docker-compose up -d
@@ -22,36 +26,145 @@ docker-compose up -d
 
 | Recurso | URL |
 |---------|-----|
-| API (via Gateway) | http://localhost:8080/api/calendario |
-| Swagger (directo) | http://localhost:7020/swagger |
+| Swagger | http://localhost:7020/swagger |
+| API Security (login) | http://localhost:8081/scalar/v1 |
 | RabbitMQ Management | http://localhost:15672 (guest/guest) |
 
 ---
 
 ## Autenticación
 
-Todos los endpoints requieren `Bearer Token`. El token se valida con:
+Todos los endpoints requieren `Bearer Token`. El token es emitido por **api_security** y se valida con:
 
 ```
-Issuer:   nurtricenter-auth
-Audience: nurtricenter-api
-Key:      nurtricenter-clave-secreta-de-al-menos-32-caracteres
+Issuer:   api_security
+Audience: *
+Key:      DiplomadoMicroservicios2025SecretoJTWApiSecurity
 ```
 
-Incluir en cada request:
+### Obtener el token
+
+```http
+POST http://localhost:8081/api/authentications/login
+Content-Type: application/json
+
+{
+  "email": "usuario@ejemplo.com",
+  "password": "contraseña"
+}
+```
+
+Incluir el token en cada request al microservicio:
 ```
 Authorization: Bearer <token>
 ```
 
 ---
 
+## Mensajería con RabbitMQ
+
+Este microservicio usa **RabbitMQ** como broker de mensajes para comunicarse con el resto del sistema. La integración está construida sobre **MassTransit**, que maneja la conexión, serialización y ruteo de mensajes automáticamente.
+
+### Por qué RabbitMQ
+
+En una arquitectura de microservicios, los servicios no se llaman directamente entre sí. En cambio, publican eventos que otros servicios consumen de forma asíncrona. Esto desacopla los servicios: el calendario no sabe quién escucha sus eventos, y no le importa si el consumidor está disponible en ese momento.
+
+### Eventos que este microservicio PUBLICA
+
+Otros microservicios pueden suscribirse a estos eventos desde RabbitMQ.
+
+| Evento | Cuándo se genera | Payload |
+|--------|-----------------|---------|
+| `CalendarioCreadoIntegrationEvent` | Se crea un calendario | `CalendarioId, PacienteId, PlanAlimenticioId, FechaInicio, FechaFin` |
+| `DireccionAgregadaIntegrationEvent` | Se agrega una dirección de entrega | `CalendarioId, DireccionId, Fecha, Direccion, Latitud, Longitud` |
+| `DireccionModificadaIntegrationEvent` | Se modifica una dirección | `CalendarioId, DireccionId, Fecha, NuevaDireccion, NuevaLatitud, NuevaLongitud` |
+| `EntregaCanceladaIntegrationEvent` | Se marca un día como no entrega | `CalendarioId, DireccionId, Fecha` |
+| `EntregaReactivadaIntegrationEvent` | Se reactiva una entrega cancelada | `CalendarioId, DireccionId, Fecha` |
+| `CalendarioDesactivadoIntegrationEvent` | Se desactiva el calendario | `CalendarioId, PacienteId` |
+
+### Eventos que este microservicio CONSUME
+
+| Evento | Publicado por | Acción automática |
+|--------|--------------|-------------------|
+| `PlanAlimenticioCreadoIntegrationEvent` | MS Planes Alimenticios | Crea el calendario de entregas automáticamente |
+
+### Contrato requerido del evento entrante
+
+El microservicio de Planes Alimenticios **debe publicar exactamente este tipo**:
+
+```csharp
+public record PlanAlimenticioCreadoIntegrationEvent(
+    Guid PlanAlimenticioId,
+    Guid PacienteId,
+    DateOnly FechaInicio,
+    DateOnly FechaFin,
+    DateTime OccurredOnUtc
+);
+```
+
+> El nombre del `record` debe ser idéntico en ambos microservicios. MassTransit rutea por nombre de tipo.
+
+### Cómo conectar otro microservicio al RabbitMQ
+
+Para suscribirse a los eventos desde otro microservicio, agregar en su `docker-compose.yml`:
+
+```yaml
+services:
+  mi-microservicio:
+    # ...
+    environment:
+      - RabbitMq__Host=rabbitmq
+      - RabbitMq__Username=guest
+      - RabbitMq__Password=guest
+    networks:
+      - nutricenter_net
+
+networks:
+  nutricenter_net:
+    external: true
+```
+
+Y en su código (.NET con MassTransit):
+
+```csharp
+services.AddMassTransit(x =>
+{
+    x.AddConsumer<MiConsumer>();
+
+    x.UsingRabbitMq((ctx, cfg) =>
+    {
+        cfg.Host("rabbitmq", "/", h =>
+        {
+            h.Username("guest");
+            h.Password("guest");
+        });
+        cfg.ConfigureEndpoints(ctx); // crea la queue automáticamente
+    });
+});
+
+public class MiConsumer : IConsumer<DireccionAgregadaIntegrationEvent>
+{
+    public async Task Consume(ConsumeContext<DireccionAgregadaIntegrationEvent> context)
+    {
+        var evento = context.Message;
+        // usar evento.Fecha, evento.Latitud, evento.Longitud, etc.
+    }
+}
+```
+
+---
+
 ## Patrón Transactional Outbox
 
-### Por qué existe
+### El problema
 
-Publicar un evento a RabbitMQ y guardar el dato en la BD son dos operaciones distintas. Si el proceso muere entre una y la otra, el evento se pierde. El patrón Outbox resuelve esto: **guarda el evento en la misma BD y en la misma transacción**, y lo publica a RabbitMQ en un paso separado.
+Publicar un evento a RabbitMQ y guardar el dato en la BD son dos operaciones distintas. Si el proceso muere entre una y la otra, el evento se pierde o se publica sin que el dato haya sido persistido. El resultado: inconsistencia entre servicios.
 
-### Cómo está implementado
+### La solución
+
+El patrón Outbox resuelve esto: **el evento se guarda en la misma BD y en la misma transacción que el dato de negocio**, y se publica a RabbitMQ en un paso posterior. Así es imposible que uno se persista sin el otro.
+
+### Implementación
 
 El patrón se divide en tres piezas:
 
@@ -91,7 +204,7 @@ Se sobreescribe `SaveChangesAsync()`. Antes de persistir, EF Core inspecciona to
 4. base.SaveChangesAsync()  ← todo en UNA SOLA transacción
 ```
 
-El resultado: si la transacción falla, el dato de negocio Y el evento se revierten juntos. Es imposible que uno se guarde sin el otro.
+Si la transacción falla, el dato de negocio y el evento se revierten juntos.
 
 ---
 
@@ -112,7 +225,7 @@ Un `BackgroundService` que se ejecuta cada **5 segundos**:
 3. SaveChangesAsync() → marca todos como procesados
 ```
 
-Si RabbitMQ está caído, el servicio logea el error y reintenta en el próximo ciclo. Los mensajes nunca se pierden.
+Si RabbitMQ está caído, el servicio logea el error y reintenta en el próximo ciclo. Los mensajes **nunca se pierden**.
 
 ---
 
@@ -148,98 +261,7 @@ Si RabbitMQ está caído, el servicio logea el error y reintenta en el próximo 
   RabbitMQ Exchange
      │
      ▼
-  [Microservicio de Logística consume el evento]
-```
-
----
-
-## Eventos que este microservicio PUBLICA
-
-Otros microservicios pueden suscribirse a estos eventos desde RabbitMQ.
-
-| Evento | Cuándo se genera | Payload |
-|--------|-----------------|---------|
-| `CalendarioCreadoIntegrationEvent` | Se crea un calendario | `CalendarioId, PacienteId, PlanAlimenticioId, FechaInicio, FechaFin` |
-| `DireccionAgregadaIntegrationEvent` | Se agrega una dirección de entrega | `CalendarioId, DireccionId, Fecha, Direccion, Latitud, Longitud` |
-| `DireccionModificadaIntegrationEvent` | Se modifica una dirección | `CalendarioId, DireccionId, Fecha, NuevaDireccion, NuevaLatitud, NuevaLongitud` |
-| `EntregaCanceladaIntegrationEvent` | Se marca un día como no entrega | `CalendarioId, DireccionId, Fecha` |
-| `EntregaReactivadaIntegrationEvent` | Se reactiva una entrega cancelada | `CalendarioId, DireccionId, Fecha` |
-| `CalendarioDesactivadoIntegrationEvent` | Se desactiva el calendario | `CalendarioId, PacienteId` |
-
----
-
-## Eventos que este microservicio CONSUME
-
-| Evento | Publicado por | Acción automática |
-|--------|--------------|-------------------|
-| `PlanAlimenticioCreadoIntegrationEvent` | MS Planes Alimenticios | Crea el calendario de entregas automáticamente |
-
-### Contrato requerido del evento entrante
-
-El microservicio de Planes Alimenticios **debe publicar exactamente este tipo**:
-
-```csharp
-public record PlanAlimenticioCreadoIntegrationEvent(
-    Guid PlanAlimenticioId,
-    Guid PacienteId,
-    DateOnly FechaInicio,
-    DateOnly FechaFin,
-    DateTime OccurredOnUtc
-);
-```
-
-> El nombre del `record` debe ser idéntico en ambos microservicios. MassTransit rutea por nombre de tipo.
-
----
-
-## Cómo conectar otro microservicio al RabbitMQ compartido
-
-El RabbitMQ lo levanta el API Gateway. Para conectarse desde otro microservicio, agregar en su `docker-compose.yml`:
-
-```yaml
-services:
-  mi-microservicio:
-    # ...
-    environment:
-      - RabbitMq__Host=rabbitmq
-      - RabbitMq__Username=guest
-      - RabbitMq__Password=guest
-    networks:
-      - nutricenter_net
-
-networks:
-  nutricenter_net:
-    external: true   # reutilizar la red existente, no crear una nueva
-```
-
-Y en su código (ejemplo .NET con MassTransit):
-
-```csharp
-// Registrar el consumer
-services.AddMassTransit(x =>
-{
-    x.AddConsumer<MiConsumer>();
-
-    x.UsingRabbitMq((ctx, cfg) =>
-    {
-        cfg.Host("rabbitmq", "/", h =>
-        {
-            h.Username("guest");
-            h.Password("guest");
-        });
-        cfg.ConfigureEndpoints(ctx); // crea la queue automáticamente
-    });
-});
-
-// Implementar el consumer
-public class MiConsumer : IConsumer<DireccionAgregadaIntegrationEvent>
-{
-    public async Task Consume(ConsumeContext<DireccionAgregadaIntegrationEvent> context)
-    {
-        var evento = context.Message;
-        // usar evento.Fecha, evento.Latitud, evento.Longitud, etc.
-    }
-}
+  [Microservicio consumidor recibe el evento]
 ```
 
 ---

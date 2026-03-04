@@ -1,10 +1,12 @@
 using CalendarioEntregas.Domain.Repositories;
 using CalendarioEntregas.Domain.Abstractions;
 using CalendarioEntregas.Infrastructure.Messaging.Consumers;
+using CalendarioEntregas.Infrastructure.Messaging.IntegrationEvents;
 using CalendarioEntregas.Infrastructure.Outbox;
 using CalendarioEntregas.Infrastructure.Persistence;
 using CalendarioEntregas.Infrastructure.Repositories;
 using MassTransit;
+using RabbitMQ.Client;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -51,9 +53,28 @@ namespace CalendarioEntregas.Infrastructure
                         configuration["RabbitMq:VirtualHost"] ?? "/",
                         h =>
                         {
-                            h.Username(configuration["RabbitMq:Username"] ?? "guest");
-                            h.Password(configuration["RabbitMq:Password"] ?? "guest");
+                            h.Username(configuration["RabbitMq:Username"] ?? "admin");
+                            h.Password(configuration["RabbitMq:Password"] ?? "admin");
                         });
+
+                    // Convención de exchanges: exchange único "calendario", tipo topic, durable
+                    cfg.Message<CalendarioCreadoIntegrationEvent>(x => x.SetEntityName("calendario"));
+                    cfg.Publish<CalendarioCreadoIntegrationEvent>(x => { x.ExchangeType = ExchangeType.Topic; x.Durable = true; });
+
+                    cfg.Message<DireccionAgregadaIntegrationEvent>(x => x.SetEntityName("calendario"));
+                    cfg.Publish<DireccionAgregadaIntegrationEvent>(x => { x.ExchangeType = ExchangeType.Topic; x.Durable = true; });
+
+                    cfg.Message<DireccionModificadaIntegrationEvent>(x => x.SetEntityName("calendario"));
+                    cfg.Publish<DireccionModificadaIntegrationEvent>(x => { x.ExchangeType = ExchangeType.Topic; x.Durable = true; });
+
+                    cfg.Message<EntregaCanceladaIntegrationEvent>(x => x.SetEntityName("calendario"));
+                    cfg.Publish<EntregaCanceladaIntegrationEvent>(x => { x.ExchangeType = ExchangeType.Topic; x.Durable = true; });
+
+                    cfg.Message<EntregaReactivadaIntegrationEvent>(x => x.SetEntityName("calendario"));
+                    cfg.Publish<EntregaReactivadaIntegrationEvent>(x => { x.ExchangeType = ExchangeType.Topic; x.Durable = true; });
+
+                    cfg.Message<CalendarioDesactivadoIntegrationEvent>(x => x.SetEntityName("calendario"));
+                    cfg.Publish<CalendarioDesactivadoIntegrationEvent>(x => { x.ExchangeType = ExchangeType.Topic; x.Durable = true; });
 
                     cfg.ConfigureEndpoints(ctx);
                 });

@@ -5,6 +5,9 @@
 		},
 		{
 			"path": "../../../api-gateway"
+		},
+		{
+			"path": "../../../api_security"
 		}
 	],
 	"settings": {}
