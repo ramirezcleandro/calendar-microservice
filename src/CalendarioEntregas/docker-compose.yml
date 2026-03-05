@@ -10,7 +10,7 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
     networks:
-      - nutricenter_net
+      - shared-network
     volumes:
       - calendario_pgdata:/var/lib/postgresql/data
     ports:
@@ -41,16 +41,16 @@ services:
       Jwt__Audience: "*"
       RabbitMQ__Host: "rabbitmq"
       RabbitMQ__Port: "5672"
-      RabbitMQ__UserName: "guest"
-      RabbitMQ__Password: "guest"
+      RabbitMQ__UserName: "admin"
+      RabbitMQ__Password: "StrongPassword123"
       RabbitMQ__VirtualHost: "/"
       RabbitMQ__DeadLetterExchange: "dead-letter-exchange"
     networks:
-      - nutricenter_net
+      - shared-network
 
 networks:
-  nutricenter_net:
-    external: true   # creada por el docker-compose del api-gateway
+  shared-network:
+    external: true
 
 volumes:
   calendario_pgdata:

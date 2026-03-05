@@ -17,6 +17,10 @@ namespace CalendarioEntregas.Infrastructure
     {
         public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
         {
+            // Registrar OutboxHandlers (INotificationHandler) de esta assembly en MediatR
+            services.AddMediatR(config =>
+                config.RegisterServicesFromAssembly(typeof(DependencyInjection).Assembly));
+
             var connectionString = configuration.GetConnectionString("CalendarioDatabase")
                 ?? throw new InvalidOperationException("Connection string 'CalendarioDatabase' no encontrada.");
 

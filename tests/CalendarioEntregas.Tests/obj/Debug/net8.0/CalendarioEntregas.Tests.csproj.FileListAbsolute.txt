@@ -112,3 +112,10 @@ C:\Users\leandroramirez\source\repos\calendar-service\tests\CalendarioEntregas.T
 C:\Users\leandroramirez\source\repos\calendar-service\tests\CalendarioEntregas.Tests\obj\Debug\net8.0\CalendarioEntregas.Tests.pdb
 C:\Users\leandroramirez\source\repos\calendar-service\tests\CalendarioEntregas.Tests\obj\Debug\net8.0\CalendarioEntregas.Tests.genruntimeconfig.cache
 C:\Users\leandroramirez\source\repos\calendar-service\tests\CalendarioEntregas.Tests\obj\Debug\net8.0\ref\CalendarioEntregas.Tests.dll
+C:\Users\leandroramirez\source\repos\calendar-service\tests\CalendarioEntregas.Tests\bin\Debug\net8.0\Microsoft.Extensions.Logging.Abstractions.dll
+C:\Users\leandroramirez\source\repos\calendar-service\tests\CalendarioEntregas.Tests\bin\Debug\net8.0\Microsoft.IdentityModel.Abstractions.dll
+C:\Users\leandroramirez\source\repos\calendar-service\tests\CalendarioEntregas.Tests\bin\Debug\net8.0\Microsoft.IdentityModel.JsonWebTokens.dll
+C:\Users\leandroramirez\source\repos\calendar-service\tests\CalendarioEntregas.Tests\bin\Debug\net8.0\Microsoft.IdentityModel.Logging.dll
+C:\Users\leandroramirez\source\repos\calendar-service\tests\CalendarioEntregas.Tests\bin\Debug\net8.0\Microsoft.IdentityModel.Tokens.dll
+C:\Users\leandroramirez\source\repos\calendar-service\tests\CalendarioEntregas.Tests\bin\Debug\net8.0\System.Diagnostics.DiagnosticSource.dll
+C:\Users\leandroramirez\source\repos\calendar-service\tests\CalendarioEntregas.Tests\obj\Debug\net8.0\CalendarioEntregas.Tests.sourcelink.json
