@@ -17,68 +17,6 @@
     {
       "name": "🔐 Security (api_security :8081)",
       "item": [
-        {
-          "name": "1. Crear Usuario",
-          "request": {
-            "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "url": { "raw": "{{base_security}}/api/users", "host": ["{{base_security}}"], "path": ["api", "users"] },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"userName\": \"testuser\",\n  \"patientId\": \"{{pacienteId}}\",\n  \"password\": \"Test1234\",\n  \"roleType\": 2\n}"
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "2. Login → guarda token",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "var json = pm.response.json();",
-                  "if (json.isSuccess && json.value) {",
-                  "    pm.collectionVariables.set('token', json.value);",
-                  "    console.log('Token guardado:', json.value.substring(0, 50) + '...');",
-                  "} else {",
-                  "    console.error('Login fallido:', JSON.stringify(json));",
-                  "}"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
-          "request": {
-            "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "url": { "raw": "{{base_security}}/api/authentications", "host": ["{{base_security}}"], "path": ["api", "authentications"] },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"username\": \"testuser\",\n  \"password\": \"Test1234\"\n}"
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Listar Usuarios",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{base_security}}/api/users?page=1&pageSize=10",
-              "host": ["{{base_security}}"],
-              "path": ["api", "users"],
-              "query": [
-                { "key": "page", "value": "1" },
-                { "key": "pageSize", "value": "10" }
-              ]
-            }
-          },
-          "response": []
-        }
-      ]
-    },
     {
       "name": "📅 Calendario (:7020)",
       "auth": {

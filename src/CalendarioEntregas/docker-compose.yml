@@ -23,9 +23,7 @@ services:
 
   # ─── Microservicio Calendario de Entregas ────────────────────────────────────
   calendario-webapi:
-    build:
-      context: .
-      dockerfile: CalendarioEntregas.WebApi/Dockerfile
+    image: curbonato/calendario-webapi:1.0.1
     container_name: calendario-webapi
     restart: unless-stopped
     ports:
