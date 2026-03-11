@@ -6,39 +6,39 @@ using Microsoft.Extensions.Logging;
 
 namespace CalendarioEntregas.Infrastructure.Messaging.Consumers
 {
-    public class PlanAlimenticioCreadoConsumer : IIntegrationMessageConsumer<PlanAlimenticioCreadoIntegrationEvent>
-    {
-        private readonly ISender _sender;
-        private readonly ILogger<PlanAlimenticioCreadoConsumer> _logger;
+	public class PlanAlimenticioCreadoConsumer : IIntegrationMessageConsumer<PlanAlimenticioCreadoIntegrationEvent>
+	{
+		private readonly ISender _sender;
+		private readonly ILogger<PlanAlimenticioCreadoConsumer> _logger;
 
-        public PlanAlimenticioCreadoConsumer(ISender sender, ILogger<PlanAlimenticioCreadoConsumer> logger)
-        {
-            _sender = sender;
-            _logger = logger;
-        }
+		public PlanAlimenticioCreadoConsumer(ISender sender, ILogger<PlanAlimenticioCreadoConsumer> logger)
+		{
+			_sender = sender;
+			_logger = logger;
+		}
 
-        public async Task HandleAsync(PlanAlimenticioCreadoIntegrationEvent message, CancellationToken ct = default)
-        {
-            _logger.LogInformation(
-                "Recibido PlanAlimenticioCreado: PlanId={PlanId}, PacienteId={PacienteId}",
-                message.PlanId, message.PacienteId);
+		public async Task HandleAsync(PlanAlimenticioCreadoIntegrationEvent message, CancellationToken ct = default)
+		{
+			_logger.LogInformation(
+				"Recibido PlanAlimenticioCreado: PlanId={PlanId}, PacienteId={PacienteId}",
+				message.PlanId, message.PacienteId);
 
-            var fechaInicio = DateOnly.FromDateTime(message.FechaInicio);
-            var fechaFin = fechaInicio.AddDays(message.Duracion);
+			var fechaInicio = DateOnly.FromDateTime(message.FechaInicio);
+			var fechaFin = fechaInicio.AddDays(message.Duracion);
 
-            var command = new CreateCalendarioCommand(
-                message.PacienteId,
-                message.PlanId,
-                fechaInicio,
-                fechaFin
-            );
+			var command = new CreateCalendarioCommand(
+				message.PacienteId,
+				message.PlanId,
+				fechaInicio,
+				fechaFin
+			);
 
-            var result = await _sender.Send(command, ct);
+			var result = await _sender.Send(command, ct);
 
-            if (result.IsSuccess)
-                _logger.LogInformation("Calendario creado: CalendarioId={CalendarioId}", result.Value);
-            else
-                _logger.LogError("Error al crear calendario para PlanId={PlanId}: {Error}", message.PlanId, result.Error!.Description);
-        }
-    }
+			if (result.IsSuccess)
+				_logger.LogInformation("Calendario creado: CalendarioId={CalendarioId}", result.Value);
+			else
+				_logger.LogError("Error al crear calendario para PlanId={PlanId}: {Error}", message.PlanId, result.Error!.Description);
+		}
+	}
 }

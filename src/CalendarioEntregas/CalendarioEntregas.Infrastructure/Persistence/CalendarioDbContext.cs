@@ -4,65 +4,65 @@ using Microsoft.EntityFrameworkCore;
 
 namespace CalendarioEntregas.Infrastructure.Persistence
 {
-    public class CalendarioDbContext : DbContext
-    {
-        public DbSet<CalendarioEntrega> Calendarios { get; set; } = null!;
-        public DbSet<Direccion> Direcciones { get; set; } = null!;
+	public class CalendarioDbContext : DbContext
+	{
+		public DbSet<CalendarioEntrega> Calendarios { get; set; } = null!;
+		public DbSet<Direccion> Direcciones { get; set; } = null!;
 
-        public CalendarioDbContext(DbContextOptions<CalendarioDbContext> options) : base(options)
-        {
-        }
+		public CalendarioDbContext(DbContextOptions<CalendarioDbContext> options) : base(options)
+		{
+		}
 
-        protected override void OnModelCreating(ModelBuilder modelBuilder)
-        {
-            base.OnModelCreating(modelBuilder);
+		protected override void OnModelCreating(ModelBuilder modelBuilder)
+		{
+			base.OnModelCreating(modelBuilder);
 
-            modelBuilder.ConfigureOutbox();
+			modelBuilder.ConfigureOutbox();
 
-            modelBuilder.Entity<CalendarioEntrega>(entity =>
-            {
-                entity.HasKey(e => e.Id);
-                entity.Property(e => e.Id).ValueGeneratedNever();
-                entity.Property(e => e.PacienteId).IsRequired();
-                entity.Property(e => e.PlanAlimenticioId).IsRequired();
-                entity.Property(e => e.FechaInicio).IsRequired();
-                entity.Property(e => e.FechaFin).IsRequired();
-                entity.Property(e => e.FechaCreacion).IsRequired();
-                entity.Property(e => e.Activo).IsRequired();
+			modelBuilder.Entity<CalendarioEntrega>(entity =>
+			{
+				entity.HasKey(e => e.Id);
+				entity.Property(e => e.Id).ValueGeneratedNever();
+				entity.Property(e => e.PacienteId).IsRequired();
+				entity.Property(e => e.PlanAlimenticioId).IsRequired();
+				entity.Property(e => e.FechaInicio).IsRequired();
+				entity.Property(e => e.FechaFin).IsRequired();
+				entity.Property(e => e.FechaCreacion).IsRequired();
+				entity.Property(e => e.Activo).IsRequired();
 
-                entity.HasMany(e => e.Direcciones)
-                    .WithOne()
-                    .HasForeignKey(d => d.CalendarioId)
-                    .OnDelete(DeleteBehavior.Cascade);
+				entity.HasMany(e => e.Direcciones)
+					.WithOne()
+					.HasForeignKey(d => d.CalendarioId)
+					.OnDelete(DeleteBehavior.Cascade);
 
-                entity.ToTable("Calendarios");
-            });
+				entity.ToTable("Calendarios");
+			});
 
-            modelBuilder.Entity<Direccion>(entity =>
-            {
-                entity.HasKey(e => e.Id);
-                entity.Property(e => e.Id).ValueGeneratedNever();
-                entity.Property(e => e.CalendarioId).IsRequired();
-                entity.Property(e => e.Fecha).IsRequired();
-                entity.Property(e => e.Direccion_Texto).IsRequired();
-                entity.Property(e => e.Referencias).IsRequired();
-                entity.Property(e => e.EsEntregaActiva).IsRequired();
-                entity.Property(e => e.FechaCreacion).IsRequired();
+			modelBuilder.Entity<Direccion>(entity =>
+			{
+				entity.HasKey(e => e.Id);
+				entity.Property(e => e.Id).ValueGeneratedNever();
+				entity.Property(e => e.CalendarioId).IsRequired();
+				entity.Property(e => e.Fecha).IsRequired();
+				entity.Property(e => e.Direccion_Texto).IsRequired();
+				entity.Property(e => e.Referencias).IsRequired();
+				entity.Property(e => e.EsEntregaActiva).IsRequired();
+				entity.Property(e => e.FechaCreacion).IsRequired();
 
-                entity.OwnsOne(d => d.Latitud, builder =>
-                {
-                    builder.Property(l => l.Valor).HasColumnName("Latitud");
-                });
+				entity.OwnsOne(d => d.Latitud, builder =>
+				{
+					builder.Property(l => l.Valor).HasColumnName("Latitud");
+				});
 
-                entity.OwnsOne(d => d.Longitud, builder =>
-                {
-                    builder.Property(l => l.Valor).HasColumnName("Longitud");
-                });
+				entity.OwnsOne(d => d.Longitud, builder =>
+				{
+					builder.Property(l => l.Valor).HasColumnName("Longitud");
+				});
 
-                entity.HasIndex(d => new { d.CalendarioId, d.Fecha }).IsUnique();
+				entity.HasIndex(d => new { d.CalendarioId, d.Fecha }).IsUnique();
 
-                entity.ToTable("Direcciones");
-            });
-        }
-    }
+				entity.ToTable("Direcciones");
+			});
+		}
+	}
 }

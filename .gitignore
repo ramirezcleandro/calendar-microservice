@@ -28,3 +28,6 @@ packages/
 
 # Claude local settings
 .claude/settings.local.json
+
+# Node / Husky
+node_modules/

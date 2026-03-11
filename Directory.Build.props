@@ -1,0 +1,16 @@
+<Project>
+
+	<!--
+		Este archivo se aplica automáticamente a TODOS los proyectos de la solución.
+		Agregar aquí paquetes de análisis que deben estar en todos los proyectos.
+	-->
+
+	<ItemGroup>
+		<!-- Analizador de Sonar: detecta bugs, code smells y vulnerabilidades en build -->
+		<PackageReference Include="SonarAnalyzer.CSharp" Version="10.7.0.110445">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+		</PackageReference>
+	</ItemGroup>
+
+</Project>

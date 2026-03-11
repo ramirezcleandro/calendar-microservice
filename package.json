@@ -1,0 +1,12 @@
+{
+	"name": "calendar-service-hooks",
+	"version": "1.0.0",
+	"description": "Git hooks para CalendarioEntregas (dotnet format via husky)",
+	"private": true,
+	"scripts": {
+		"prepare": "husky"
+	},
+	"devDependencies": {
+		"husky": "^9.1.7"
+	}
+}
