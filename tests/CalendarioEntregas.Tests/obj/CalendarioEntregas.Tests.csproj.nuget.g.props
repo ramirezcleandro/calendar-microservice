@@ -22,5 +22,6 @@
   </ImportGroup>
   <PropertyGroup Condition=" '$(ExcludeRestorePackageImports)' != 'true' ">
     <Pkgxunit_analyzers Condition=" '$(Pkgxunit_analyzers)' == '' ">C:\Users\leandroramirez\.nuget\packages\xunit.analyzers\1.10.0</Pkgxunit_analyzers>
+    <PkgSonarAnalyzer_CSharp Condition=" '$(PkgSonarAnalyzer_CSharp)' == '' ">C:\Users\leandroramirez\.nuget\packages\sonaranalyzer.csharp\10.7.0.110445</PkgSonarAnalyzer_CSharp>
   </PropertyGroup>
 </Project>

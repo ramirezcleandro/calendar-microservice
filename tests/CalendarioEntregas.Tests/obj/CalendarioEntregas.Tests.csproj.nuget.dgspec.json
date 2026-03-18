@@ -57,6 +57,12 @@
             "MediatR": {
               "target": "Package",
               "version": "[14.1.0, )"
+            },
+            "SonarAnalyzer.CSharp": {
+              "include": "Runtime, Build, Native, ContentFiles, Analyzers",
+              "suppressParent": "All",
+              "target": "Package",
+              "version": "[10.7.0.110445, )"
             }
           },
           "imports": [
@@ -124,6 +130,14 @@
       "frameworks": {
         "net8.0": {
           "targetAlias": "net8.0",
+          "dependencies": {
+            "SonarAnalyzer.CSharp": {
+              "include": "Runtime, Build, Native, ContentFiles, Analyzers",
+              "suppressParent": "All",
+              "target": "Package",
+              "version": "[10.7.0.110445, )"
+            }
+          },
           "imports": [
             "net461",
             "net462",
@@ -208,6 +222,12 @@
             "Moq": {
               "target": "Package",
               "version": "[4.20.70, )"
+            },
+            "SonarAnalyzer.CSharp": {
+              "include": "Runtime, Build, Native, ContentFiles, Analyzers",
+              "suppressParent": "All",
+              "target": "Package",
+              "version": "[10.7.0.110445, )"
             },
             "xunit": {
               "target": "Package",

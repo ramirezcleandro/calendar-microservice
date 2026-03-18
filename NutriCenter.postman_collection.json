@@ -1,31 +1,113 @@
 {
   "info": {
     "name": "NutriCenter - CalendarioEntregas",
-    "_postman_id": "nutricenter-calendario-collection",
-    "description": "Colección para probar api_security y el microservicio CalendarioEntregas.\n\nFlujo:\n1. [Security] Crear usuario\n2. [Security] Login → el token se guarda automáticamente en {{token}}\n3. Usar cualquier endpoint de Calendario (el token se envía automáticamente)",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
-    { "key": "base_security", "value": "http://localhost:8081", "type": "string" },
-    { "key": "base_calendario", "value": "http://localhost:7020", "type": "string" },
-    { "key": "token", "value": "", "type": "string" },
-    { "key": "calendarioId", "value": "", "type": "string" },
-    { "key": "pacienteId", "value": "11111111-1111-1111-1111-111111111111", "type": "string" },
-    { "key": "planAlimenticioId", "value": "22222222-2222-2222-2222-222222222222", "type": "string" }
+    { "key": "gateway_url",  "value": "http://localhost:8080" },
+    { "key": "direct_url",   "value": "http://localhost:7020" },
+    { "key": "token",        "value": "" },
+    { "key": "calendarioId", "value": "" },
+    { "key": "userId",       "value": "" }
   ],
   "item": [
+
     {
-      "name": "🔐 Security (api_security :8081)",
+      "name": "Security",
       "item": [
+        {
+          "name": "Crear usuario",
+          "request": {
+            "method": "POST",
+            "url": "{{gateway_url}}/api/users",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userName\": \"admin\",\n  \"patientId\": \"00000000-0000-0000-0000-000000000001\",\n  \"password\": \"Admin123!\",\n  \"roleType\": 0\n}"
+            }
+          }
+        },
+        {
+          "name": "Login (guarda token automaticamente)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var json = pm.response.json();",
+                  "if (json.value) {",
+                  "    pm.collectionVariables.set('token', json.value);",
+                  "    console.log('Token guardado correctamente');",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "url": "{{gateway_url}}/api/authentications",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"admin\",\n  \"password\": \"Admin123!\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Listar usuarios",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{gateway_url}}/api/users?page=1&pageSize=10",
+              "query": [
+                { "key": "page",     "value": "1" },
+                { "key": "pageSize", "value": "10" },
+                { "key": "search",   "value": "", "disabled": true }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Obtener usuario por ID",
+          "request": {
+            "method": "GET",
+            "url": "{{gateway_url}}/api/users/{{userId}}"
+          }
+        },
+        {
+          "name": "Agregar rol a usuario",
+          "request": {
+            "method": "POST",
+            "url": "{{gateway_url}}/api/users/{{userId}}/roles",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"roleName\": \"admin\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Quitar rol a usuario",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{gateway_url}}/api/users/{{userId}}/roles?roleName=admin",
+              "query": [{ "key": "roleName", "value": "admin" }]
+            }
+          }
+        }
+      ]
+    },
+
     {
-      "name": "📅 Calendario (:7020)",
+      "name": "Calendario (via Gateway :8080)",
       "auth": {
         "type": "bearer",
-        "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+        "bearer": [{ "key": "token", "value": "{{token}}" }]
       },
       "item": [
         {
-          "name": "1. Crear Calendario",
+          "name": "Crear calendario",
           "event": [
             {
               "listen": "test",
@@ -36,170 +118,230 @@
                   "    pm.collectionVariables.set('calendarioId', json.calendarioId);",
                   "    console.log('CalendarioId guardado:', json.calendarioId);",
                   "}"
-                ],
-                "type": "text/javascript"
+                ]
               }
             }
           ],
           "request": {
             "method": "POST",
+            "url": "{{gateway_url}}/api/calendario/crear",
             "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "url": { "raw": "{{base_calendario}}/api/calendario/crear", "host": ["{{base_calendario}}"], "path": ["api", "calendario", "crear"] },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"pacienteId\": \"{{pacienteId}}\",\n  \"planAlimenticioId\": \"{{planAlimenticioId}}\",\n  \"fechaInicio\": \"2026-03-01\",\n  \"fechaFin\": \"2026-06-30\"\n}"
+              "raw": "{\n  \"pacienteId\": \"7c9e6679-7425-40de-944b-e07fc1f90ae7\",\n  \"planAlimenticioId\": \"3fa85f64-5717-4562-b3fc-2c963f66afa6\",\n  \"fechaInicio\": \"2026-03-10\",\n  \"fechaFin\": \"2026-04-10\"\n}"
             }
-          },
-          "response": []
+          }
         },
         {
-          "name": "2. Agregar Dirección",
+          "name": "Listar calendarios",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{gateway_url}}/api/calendario",
+              "query": [
+                { "key": "pacienteId", "value": "7c9e6679-7425-40de-944b-e07fc1f90ae7", "disabled": true }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Obtener calendario por ID",
+          "request": {
+            "method": "GET",
+            "url": "{{gateway_url}}/api/calendario/{{calendarioId}}"
+          }
+        },
+        {
+          "name": "Agregar direccion",
           "request": {
             "method": "POST",
+            "url": "{{gateway_url}}/api/calendario/{{calendarioId}}/agregar-direccion",
             "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "url": {
-              "raw": "{{base_calendario}}/api/calendario/{{calendarioId}}/agregar-direccion",
-              "host": ["{{base_calendario}}"],
-              "path": ["api", "calendario", "{{calendarioId}}", "agregar-direccion"]
-            },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"fecha\": \"2026-03-10\",\n  \"direccion\": \"Av. Corrientes 1234, CABA\",\n  \"referencias\": \"Piso 3, Depto B\",\n  \"latitud\": -34.6037,\n  \"longitud\": -58.3816\n}"
+              "raw": "{\n  \"fecha\": \"2026-03-15\",\n  \"direccion\": \"Av. Siempre Viva 742\",\n  \"referencias\": \"Edificio azul, piso 3\",\n  \"latitud\": -17.3935,\n  \"longitud\": -66.1570\n}"
             }
-          },
-          "response": []
+          }
         },
         {
-          "name": "3. Modificar Dirección",
+          "name": "Modificar direccion",
           "request": {
             "method": "PUT",
+            "url": "{{gateway_url}}/api/calendario/{{calendarioId}}/modificar-direccion",
             "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "url": {
-              "raw": "{{base_calendario}}/api/calendario/{{calendarioId}}/modificar-direccion",
-              "host": ["{{base_calendario}}"],
-              "path": ["api", "calendario", "{{calendarioId}}", "modificar-direccion"]
-            },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"fecha\": \"2026-03-10\",\n  \"nuevaDireccion\": \"Av. Santa Fe 5678, CABA\",\n  \"referencias\": \"Portería\",\n  \"latitud\": -34.5960,\n  \"longitud\": -58.3974\n}"
+              "raw": "{\n  \"fecha\": \"2026-03-15\",\n  \"nuevaDireccion\": \"Calle Potosi 123\",\n  \"referencias\": \"Cerca del parque central\",\n  \"latitud\": -17.3940,\n  \"longitud\": -66.1580\n}"
             }
-          },
-          "response": []
+          }
         },
         {
-          "name": "4. Marcar No Entrega",
+          "name": "Marcar dia no entrega",
           "request": {
             "method": "POST",
+            "url": "{{gateway_url}}/api/calendario/{{calendarioId}}/marcar-no-entrega",
             "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "url": {
-              "raw": "{{base_calendario}}/api/calendario/{{calendarioId}}/marcar-no-entrega",
-              "host": ["{{base_calendario}}"],
-              "path": ["api", "calendario", "{{calendarioId}}", "marcar-no-entrega"]
-            },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"fecha\": \"2026-03-10\"\n}"
+              "raw": "{\n  \"fecha\": \"2026-03-20\"\n}"
             }
-          },
-          "response": []
+          }
         },
         {
-          "name": "5. Reactivar Entrega",
+          "name": "Reactivar entrega",
           "request": {
             "method": "POST",
+            "url": "{{gateway_url}}/api/calendario/{{calendarioId}}/reactivar-entrega",
             "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "url": {
-              "raw": "{{base_calendario}}/api/calendario/{{calendarioId}}/reactivar-entrega",
-              "host": ["{{base_calendario}}"],
-              "path": ["api", "calendario", "{{calendarioId}}", "reactivar-entrega"]
-            },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"fecha\": \"2026-03-10\"\n}"
+              "raw": "{\n  \"fecha\": \"2026-03-20\"\n}"
             }
-          },
-          "response": []
+          }
         },
         {
-          "name": "6. Obtener Calendario por ID",
+          "name": "Obtener proxima entrega",
           "request": {
             "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{base_calendario}}/api/calendario/{{calendarioId}}",
-              "host": ["{{base_calendario}}"],
-              "path": ["api", "calendario", "{{calendarioId}}"]
-            }
-          },
-          "response": []
+            "url": "{{gateway_url}}/api/calendario/{{calendarioId}}/proxima-entrega"
+          }
         },
         {
-          "name": "7. Listar Calendarios",
+          "name": "Obtener direcciones activas",
           "request": {
             "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{base_calendario}}/api/calendario",
-              "host": ["{{base_calendario}}"],
-              "path": ["api", "calendario"]
-            }
-          },
-          "response": []
+            "url": "{{gateway_url}}/api/calendario/{{calendarioId}}/direcciones-activas"
+          }
         },
         {
-          "name": "8. Listar por PacienteId",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{base_calendario}}/api/calendario?pacienteId={{pacienteId}}",
-              "host": ["{{base_calendario}}"],
-              "path": ["api", "calendario"],
-              "query": [{ "key": "pacienteId", "value": "{{pacienteId}}" }]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "9. Próxima Entrega",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{base_calendario}}/api/calendario/{{calendarioId}}/proxima-entrega",
-              "host": ["{{base_calendario}}"],
-              "path": ["api", "calendario", "{{calendarioId}}", "proxima-entrega"]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "10. Direcciones Activas",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{base_calendario}}/api/calendario/{{calendarioId}}/direcciones-activas",
-              "host": ["{{base_calendario}}"],
-              "path": ["api", "calendario", "{{calendarioId}}", "direcciones-activas"]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "11. Desactivar Calendario",
+          "name": "Desactivar calendario",
           "request": {
             "method": "POST",
-            "header": [],
-            "url": {
-              "raw": "{{base_calendario}}/api/calendario/{{calendarioId}}/desactivar",
-              "host": ["{{base_calendario}}"],
-              "path": ["api", "calendario", "{{calendarioId}}", "desactivar"]
+            "url": "{{gateway_url}}/api/calendario/{{calendarioId}}/desactivar"
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "Calendario (Directo :7020)",
+      "item": [
+        {
+          "name": "Crear calendario",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var json = pm.response.json();",
+                  "if (json.calendarioId) {",
+                  "    pm.collectionVariables.set('calendarioId', json.calendarioId);",
+                  "    console.log('CalendarioId guardado:', json.calendarioId);",
+                  "}"
+                ]
+              }
             }
-          },
-          "response": []
+          ],
+          "request": {
+            "method": "POST",
+            "url": "{{direct_url}}/api/calendario/crear",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"pacienteId\": \"7c9e6679-7425-40de-944b-e07fc1f90ae7\",\n  \"planAlimenticioId\": \"3fa85f64-5717-4562-b3fc-2c963f66afa6\",\n  \"fechaInicio\": \"2026-03-10\",\n  \"fechaFin\": \"2026-04-10\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Listar calendarios",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{direct_url}}/api/calendario",
+              "query": [
+                { "key": "pacienteId", "value": "7c9e6679-7425-40de-944b-e07fc1f90ae7", "disabled": true }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Obtener calendario por ID",
+          "request": {
+            "method": "GET",
+            "url": "{{direct_url}}/api/calendario/{{calendarioId}}"
+          }
+        },
+        {
+          "name": "Agregar direccion",
+          "request": {
+            "method": "POST",
+            "url": "{{direct_url}}/api/calendario/{{calendarioId}}/agregar-direccion",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fecha\": \"2026-03-15\",\n  \"direccion\": \"Av. Siempre Viva 742\",\n  \"referencias\": \"Edificio azul, piso 3\",\n  \"latitud\": -17.3935,\n  \"longitud\": -66.1570\n}"
+            }
+          }
+        },
+        {
+          "name": "Modificar direccion",
+          "request": {
+            "method": "PUT",
+            "url": "{{direct_url}}/api/calendario/{{calendarioId}}/modificar-direccion",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fecha\": \"2026-03-15\",\n  \"nuevaDireccion\": \"Calle Potosi 123\",\n  \"referencias\": \"Cerca del parque central\",\n  \"latitud\": -17.3940,\n  \"longitud\": -66.1580\n}"
+            }
+          }
+        },
+        {
+          "name": "Marcar dia no entrega",
+          "request": {
+            "method": "POST",
+            "url": "{{direct_url}}/api/calendario/{{calendarioId}}/marcar-no-entrega",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fecha\": \"2026-03-20\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Reactivar entrega",
+          "request": {
+            "method": "POST",
+            "url": "{{direct_url}}/api/calendario/{{calendarioId}}/reactivar-entrega",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fecha\": \"2026-03-20\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Obtener proxima entrega",
+          "request": {
+            "method": "GET",
+            "url": "{{direct_url}}/api/calendario/{{calendarioId}}/proxima-entrega"
+          }
+        },
+        {
+          "name": "Obtener direcciones activas",
+          "request": {
+            "method": "GET",
+            "url": "{{direct_url}}/api/calendario/{{calendarioId}}/direcciones-activas"
+          }
+        },
+        {
+          "name": "Desactivar calendario",
+          "request": {
+            "method": "POST",
+            "url": "{{direct_url}}/api/calendario/{{calendarioId}}/desactivar"
+          }
         }
       ]
     }
+
   ]
 }

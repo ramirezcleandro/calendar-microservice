@@ -13,6 +13,7 @@
           "FluentAssertions": "6.12.0",
           "Microsoft.NET.Test.Sdk": "17.9.0",
           "Moq": "4.20.70",
+          "SonarAnalyzer.CSharp": "10.7.0.110445",
           "xunit": "2.6.6",
           "xunit.runner.visualstudio": "2.5.4"
         },
@@ -405,6 +406,7 @@
           }
         }
       },
+      "SonarAnalyzer.CSharp/10.7.0.110445": {},
       "System.Configuration.ConfigurationManager/4.4.0": {
         "dependencies": {
           "System.Security.Cryptography.ProtectedData": "4.4.0"
@@ -655,6 +657,13 @@
       "sha512": "sha512-ppPFpBcvxdsfUonNcvITKqLl3bqxWbDCZIzDWHzjpdAHRFfZe0Dw9HmA0+za13IdyrgJwpkDTDA9fHaxOrt20A==",
       "path": "newtonsoft.json/13.0.1",
       "hashPath": "newtonsoft.json.13.0.1.nupkg.sha512"
+    },
+    "SonarAnalyzer.CSharp/10.7.0.110445": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-U4v2LWopxADYkUv7Z5CX7ifKMdDVqHb7a1bzppIQnQi4WQR6z1Zi5rDkCHlVYGEd1U/WMz1IJCU8OmFZLJpVig==",
+      "path": "sonaranalyzer.csharp/10.7.0.110445",
+      "hashPath": "sonaranalyzer.csharp.10.7.0.110445.nupkg.sha512"
     },
     "System.Configuration.ConfigurationManager/4.4.0": {
       "type": "package",

@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "aQhPjZWDCbk=",
+  "dgSpecHash": "TKWdFE/1q9M=",
   "success": true,
   "projectFilePath": "C:\\Users\\leandroramirez\\source\\repos\\calendar-service\\tests\\CalendarioEntregas.Tests\\CalendarioEntregas.Tests.csproj",
   "expectedPackageFiles": [
@@ -20,6 +20,7 @@
     "C:\\Users\\leandroramirez\\.nuget\\packages\\microsoft.testplatform.testhost\\17.9.0\\microsoft.testplatform.testhost.17.9.0.nupkg.sha512",
     "C:\\Users\\leandroramirez\\.nuget\\packages\\moq\\4.20.70\\moq.4.20.70.nupkg.sha512",
     "C:\\Users\\leandroramirez\\.nuget\\packages\\newtonsoft.json\\13.0.1\\newtonsoft.json.13.0.1.nupkg.sha512",
+    "C:\\Users\\leandroramirez\\.nuget\\packages\\sonaranalyzer.csharp\\10.7.0.110445\\sonaranalyzer.csharp.10.7.0.110445.nupkg.sha512",
     "C:\\Users\\leandroramirez\\.nuget\\packages\\system.configuration.configurationmanager\\4.4.0\\system.configuration.configurationmanager.4.4.0.nupkg.sha512",
     "C:\\Users\\leandroramirez\\.nuget\\packages\\system.diagnostics.diagnosticsource\\10.0.0\\system.diagnostics.diagnosticsource.10.0.0.nupkg.sha512",
     "C:\\Users\\leandroramirez\\.nuget\\packages\\system.diagnostics.eventlog\\6.0.0\\system.diagnostics.eventlog.6.0.0.nupkg.sha512",

@@ -1,0 +1,147 @@
+services:
+
+  # ─── RabbitMQ (con exchanges y queues predefinidos) ──────────────────────────
+  rabbitmq:
+    image: rabbitmq:3.13-management
+    container_name: planb-rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: admin
+      RABBITMQ_DEFAULT_PASS: StrongPassword123
+    volumes:
+      - planb_rabbitmq_data:/var/lib/rabbitmq
+      - ../ms-infrastructure/rabbitmq/definitions.json:/etc/rabbitmq/definitions.json
+      - ../ms-infrastructure/rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - planb-network
+
+  # ─── Base de datos de API Security ──────────────────────────────────────────
+  security-postgres:
+    image: postgres:16
+    container_name: planb-security-postgres
+    restart: always
+    environment:
+      POSTGRES_DB: Security
+      POSTGRES_USER: myuser
+      POSTGRES_PASSWORD: mypassword
+    volumes:
+      - planb_security_pgdata:/var/lib/postgresql/data
+    ports:
+      - "5434:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U myuser -d Security"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - planb-network
+
+  # ─── API Security ────────────────────────────────────────────────────────────
+  api-security:
+    build:
+      context: ../api_security/src
+      dockerfile: api_security/Dockerfile
+    container_name: planb-api-security
+    restart: unless-stopped
+    ports:
+      - "8081:8080"
+    depends_on:
+      security-postgres:
+        condition: service_healthy
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_HTTP_PORTS: "8080"
+      ConnectionStrings__DefaultConnection: "Host=security-postgres;Port=5432;Database=Security;Username=myuser;Password=mypassword;"
+      Jwt__Issuer: "api_security"
+      Jwt__Audience: "*"
+      Jwt__Secret: "DiplomadoMicroservicios2025SecretoJTWApiSecurity"
+      Jwt__ExpiryMinutes: "480"
+    networks:
+      - planb-network
+
+  # ─── API Gateway ─────────────────────────────────────────────────────────────
+  api-gateway:
+    build:
+      context: ../api-gateway/src/NutriCenter.ApiGateway
+      dockerfile: Dockerfile
+    container_name: planb-api-gateway
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    depends_on:
+      - api-security
+      - calendario-webapi
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      Jwt__Key: "DiplomadoMicroservicios2025SecretoJTWApiSecurity"
+      Jwt__Issuer: "api_security"
+      Jwt__Audience: "*"
+      ReverseProxy__Clusters__auth-cluster__Destinations__destination1__Address: "http://api-security:8080/"
+      ReverseProxy__Clusters__calendario-cluster__Destinations__destination1__Address: "http://calendario-webapi:7020/"
+    networks:
+      - planb-network
+
+  # ─── Base de datos Calendario ────────────────────────────────────────────────
+  calendario-postgres:
+    image: postgres:16
+    container_name: planb-calendario-postgres
+    restart: always
+    environment:
+      POSTGRES_DB: calendario_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - planb_calendario_pgdata:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d calendario_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - planb-network
+
+  # ─── Microservicio Calendario de Entregas ────────────────────────────────────
+  calendario-webapi:
+    image: curbonato/calendario-webapi:1.0.1
+    container_name: planb-calendario-webapi
+    restart: unless-stopped
+    ports:
+      - "7020:7020"
+    depends_on:
+      calendario-postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    environment:
+      ConnectionStrings__CalendarioDatabase: "Host=calendario-postgres;Port=5432;Database=calendario_db;Username=postgres;Password=postgres;"
+      ASPNETCORE_ENVIRONMENT: Development
+      Jwt__Key: "DiplomadoMicroservicios2025SecretoJTWApiSecurity"
+      Jwt__Issuer: "api_security"
+      Jwt__Audience: "*"
+      RabbitMQ__Host: "rabbitmq"
+      RabbitMQ__Port: "5672"
+      RabbitMQ__UserName: "admin"
+      RabbitMQ__Password: "StrongPassword123"
+      RabbitMQ__VirtualHost: "/"
+      RabbitMQ__DeadLetterExchange: "dead-letter-exchange"
+    networks:
+      - planb-network
+
+networks:
+  planb-network:
+    driver: bridge
+    name: planb-network
+
+volumes:
+  planb_rabbitmq_data:
+  planb_security_pgdata:
+  planb_calendario_pgdata:

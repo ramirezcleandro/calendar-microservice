@@ -475,6 +475,9 @@
           }
         }
       },
+      "SonarAnalyzer.CSharp/10.7.0.110445": {
+        "type": "package"
+      },
       "System.Configuration.ConfigurationManager/4.4.0": {
         "type": "package",
         "dependencies": {
@@ -1282,6 +1285,24 @@
         "packageIcon.png"
       ]
     },
+    "SonarAnalyzer.CSharp/10.7.0.110445": {
+      "sha512": "U4v2LWopxADYkUv7Z5CX7ifKMdDVqHb7a1bzppIQnQi4WQR6z1Zi5rDkCHlVYGEd1U/WMz1IJCU8OmFZLJpVig==",
+      "type": "package",
+      "path": "sonaranalyzer.csharp/10.7.0.110445",
+      "hasTools": true,
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "LICENSE.txt",
+        "analyzers/SonarAnalyzer.CSharp.dll",
+        "images/sonarsource_64.png",
+        "license/THIRD-PARTY-NOTICES.txt",
+        "sonaranalyzer.csharp.10.7.0.110445.nupkg.sha512",
+        "sonaranalyzer.csharp.nuspec",
+        "tools/install.ps1",
+        "tools/uninstall.ps1"
+      ]
+    },
     "System.Configuration.ConfigurationManager/4.4.0": {
       "sha512": "gWwQv/Ug1qWJmHCmN17nAbxJYmQBM/E94QxKLksvUiiKB1Ld3Sc/eK1lgmbSjDFxkQhVuayI/cGFZhpBSodLrg==",
       "type": "package",
@@ -1594,6 +1615,7 @@
       "FluentAssertions >= 6.12.0",
       "Microsoft.NET.Test.Sdk >= 17.8.2",
       "Moq >= 4.20.70",
+      "SonarAnalyzer.CSharp >= 10.7.0.110445",
       "xunit >= 2.6.6",
       "xunit.runner.visualstudio >= 2.5.4"
     ]
@@ -1666,6 +1688,12 @@
           "Moq": {
             "target": "Package",
             "version": "[4.20.70, )"
+          },
+          "SonarAnalyzer.CSharp": {
+            "include": "Runtime, Build, Native, ContentFiles, Analyzers",
+            "suppressParent": "All",
+            "target": "Package",
+            "version": "[10.7.0.110445, )"
           },
           "xunit": {
             "target": "Package",
