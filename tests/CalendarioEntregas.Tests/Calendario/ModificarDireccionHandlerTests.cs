@@ -174,7 +174,7 @@ namespace CalendarioEntregas.Tests.Calendario
 
 			// Assert
 			result.IsFailure.Should().BeTrue();
-			result.Error.Code.Should().Be("ItemNotFound");
+			result.Error.Code.Should().Be("Calendario.ModificacionError");
 		}
 
 		[Fact]

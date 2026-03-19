@@ -1,16 +1,4 @@
 #!/bin/sh
-# Pre-commit: verifica que el código cumple el .editorconfig antes de commitear
-# Si hay violaciones, dotnet format lista los archivos con problemas y el commit falla.
+# Pre-commit: lint-staged aplica dotnet format solo a los archivos .cs en staging
 
-echo "Verificando formato del código (.editorconfig)..."
-
-dotnet format "calendar-service.sln" whitespace --verify-no-changes --verbosity diagnostic
-
-if [ $? -ne 0 ]; then
-  echo ""
-  echo "ERROR: El código no cumple las reglas de formato definidas en .editorconfig."
-  echo "Ejecuta 'dotnet format calendar-service.sln' para corregir automáticamente."
-  exit 1
-fi
-
-echo "Formato OK."
+npx lint-staged

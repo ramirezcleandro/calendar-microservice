@@ -1,12 +1,16 @@
 {
 	"name": "calendar-service-hooks",
 	"version": "1.0.0",
-	"description": "Git hooks para CalendarioEntregas (dotnet format via husky)",
+	"description": "Git hooks para CalendarioEntregas (dotnet format + lint-staged via husky)",
 	"private": true,
 	"scripts": {
 		"prepare": "husky"
 	},
+	"lint-staged": {
+		"*.cs": "dotnet format calendar-service.sln --include"
+	},
 	"devDependencies": {
-		"husky": "^9.1.7"
+		"husky": "^9.1.7",
+		"lint-staged": "^15.2.7"
 	}
 }
