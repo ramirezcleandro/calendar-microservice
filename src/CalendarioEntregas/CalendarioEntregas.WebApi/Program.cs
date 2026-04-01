@@ -21,7 +21,7 @@ builder.Services.AddEndpointsApiExplorer();
 // Swagger con soporte para Bearer Token
 builder.Services.AddSwaggerGen(c =>
 {
-	c.SwaggerDoc("v1", new OpenApiInfo { Title = "CalendarioEntregas API", Version = "v1" });
+	c.SwaggerDoc("v1", new OpenApiInfo { Title = "CalendarioEntregas API V1", Version = "v1" });
 
 	c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
 	{
