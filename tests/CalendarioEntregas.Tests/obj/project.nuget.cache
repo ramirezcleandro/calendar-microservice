@@ -1,10 +1,11 @@
 {
   "version": 2,
-  "dgSpecHash": "TKWdFE/1q9M=",
+  "dgSpecHash": "aT/YpqylvzI=",
   "success": true,
   "projectFilePath": "C:\\Users\\leandroramirez\\source\\repos\\calendar-service\\tests\\CalendarioEntregas.Tests\\CalendarioEntregas.Tests.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\leandroramirez\\.nuget\\packages\\castle.core\\5.1.1\\castle.core.5.1.1.nupkg.sha512",
+    "C:\\Users\\leandroramirez\\.nuget\\packages\\coverlet.collector\\6.0.2\\coverlet.collector.6.0.2.nupkg.sha512",
     "C:\\Users\\leandroramirez\\.nuget\\packages\\fluentassertions\\6.12.0\\fluentassertions.6.12.0.nupkg.sha512",
     "C:\\Users\\leandroramirez\\.nuget\\packages\\mediatr\\14.1.0\\mediatr.14.1.0.nupkg.sha512",
     "C:\\Users\\leandroramirez\\.nuget\\packages\\mediatr.contracts\\2.0.1\\mediatr.contracts.2.0.1.nupkg.sha512",
