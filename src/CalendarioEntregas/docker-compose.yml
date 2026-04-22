@@ -60,3 +60,7 @@ services:
 
 volumes:
   calendario_pgdata:
+
+networks:
+  shared-network:
+    driver: bridge
