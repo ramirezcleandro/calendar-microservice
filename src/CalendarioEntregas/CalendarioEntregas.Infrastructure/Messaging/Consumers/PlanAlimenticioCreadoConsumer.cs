@@ -20,8 +20,16 @@ namespace CalendarioEntregas.Infrastructure.Messaging.Consumers
 		public async Task HandleAsync(PlanAlimenticioCreadoIntegrationEvent message, CancellationToken ct = default)
 		{
 			_logger.LogInformation(
-				"Recibido PlanAlimenticioCreado: PlanId={PlanId}, PacienteId={PacienteId}",
-				message.PlanId, message.PacienteId);
+				"Recibido PlanAlimenticioCreado: PlanId={PlanId}, PacienteId={PacienteId}, RequiereCatering={RequiereCatering}",
+				message.PlanId, message.PacienteId, message.RequiereCatering);
+
+			if (!message.RequiereCatering)
+			{
+				_logger.LogInformation(
+					"Plan {PlanId} no requiere catering. No se crea calendario de entregas.",
+					message.PlanId);
+				return;
+			}
 
 			var fechaInicio = DateOnly.FromDateTime(message.FechaInicio);
 			var fechaFin = fechaInicio.AddDays(message.Duracion);

@@ -5,15 +5,66 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
+using Serilog;
+using Serilog.Sinks.Grafana.Loki;
 using System.Text;
 
+const string ServiceName = "calendario-entregas";
+
+var lokiUri = Environment.GetEnvironmentVariable("Loki__Uri");
+
+var loggerConfig = new LoggerConfiguration()
+	.Enrich.FromLogContext()
+	.Enrich.WithMachineName()
+	.Enrich.WithThreadId()
+	.Enrich.WithProperty("Service", ServiceName)
+	.WriteTo.Console(outputTemplate:
+		"[{Timestamp:yyyy-MM-dd HH:mm:ss.fff} {Level:u3}] [{Service}] [{TraceId} {SpanId}] {Message:lj} {Properties:j}{NewLine}{Exception}");
+
+if (!string.IsNullOrWhiteSpace(lokiUri))
+{
+	loggerConfig = loggerConfig.WriteTo.GrafanaLoki(
+		lokiUri,
+		labels: new[]
+		{
+			new LokiLabel { Key = "service", Value = ServiceName },
+			new LokiLabel { Key = "app", Value = ServiceName }
+		},
+		propertiesAsLabels: new[] { "level" });
+}
+
+Log.Logger = loggerConfig.CreateLogger();
+
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Host.UseSerilog();
 
 builder.WebHost.ConfigureKestrel(options =>
 {
 	var port = int.Parse(Environment.GetEnvironmentVariable("PORT") ?? "7020");
 	options.ListenAnyIP(port);
 });
+
+// OpenTelemetry — tracing distribuido propagado por HTTP y por MassTransit/RabbitMQ
+var otlpEndpoint = Environment.GetEnvironmentVariable("OTEL_EXPORTER_OTLP_ENDPOINT");
+builder.Services.AddOpenTelemetry()
+	.ConfigureResource(r => r.AddService(ServiceName))
+	.WithTracing(tracing =>
+	{
+		tracing
+			.AddSource("MassTransit")
+			.AddAspNetCoreInstrumentation()
+			.AddHttpClientInstrumentation()
+			.AddEntityFrameworkCoreInstrumentation(o => o.SetDbStatementForText = true);
+
+		if (builder.Environment.IsDevelopment())
+			tracing.AddConsoleExporter();
+
+		if (!string.IsNullOrWhiteSpace(otlpEndpoint))
+			tracing.AddOtlpExporter(o => o.Endpoint = new Uri(otlpEndpoint));
+	});
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
@@ -91,24 +142,38 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-// Aplicar migraciones automáticamente
-using (var scope = app.Services.CreateScope())
+try
 {
-	var dbContext = scope.ServiceProvider.GetRequiredService<CalendarioDbContext>();
-	dbContext.Database.Migrate();
-	Console.WriteLine("✓ Base de datos migrada correctamente");
+	// Aplicar migraciones automáticamente
+	using (var scope = app.Services.CreateScope())
+	{
+		var dbContext = scope.ServiceProvider.GetRequiredService<CalendarioDbContext>();
+		dbContext.Database.Migrate();
+		Log.Information("Base de datos migrada correctamente");
+	}
+
+	app.UseSerilogRequestLogging();
+
+	// Swagger disponible en todos los ambientes
+	app.UseSwagger();
+	app.UseSwaggerUI();
+
+	app.UseCors("AllowAll");
+
+	app.UseAuthentication();
+	app.UseAuthorization();
+
+	app.MapHealthChecks("/health");
+	app.MapControllers();
+
+	app.Run();
 }
-
-// Swagger disponible en todos los ambientes
-app.UseSwagger();
-app.UseSwaggerUI();
-
-app.UseCors("AllowAll");
-
-app.UseAuthentication();
-app.UseAuthorization();
-
-app.MapHealthChecks("/health");
-app.MapControllers();
-
-app.Run();
+catch (Exception ex)
+{
+	Log.Fatal(ex, "El microservicio {Service} terminó inesperadamente", ServiceName);
+	throw;
+}
+finally
+{
+	Log.CloseAndFlush();
+}

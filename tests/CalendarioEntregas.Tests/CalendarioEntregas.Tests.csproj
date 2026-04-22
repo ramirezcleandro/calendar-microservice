@@ -25,6 +25,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\CalendarioEntregas\CalendarioEntregas.Application\CalendarioEntregas.Application.csproj" />
     <ProjectReference Include="..\..\src\CalendarioEntregas\CalendarioEntregas.Domain\CalendarioEntregas.Domain.csproj" />
+    <ProjectReference Include="..\..\src\CalendarioEntregas\CalendarioEntregas.Infrastructure\CalendarioEntregas.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>

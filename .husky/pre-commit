@@ -1,4 +1,11 @@
 #!/bin/sh
-# Pre-commit: lint-staged aplica dotnet format solo a los archivos .cs en staging
+# Pre-commit: formatea los .cs en staging y corre las pruebas unitarias.
+# Si alguno falla, el commit se aborta.
 
+set -e
+
+echo "→ Formateo (dotnet format sobre archivos en staging)"
 npx lint-staged
+
+echo "→ Pruebas unitarias"
+dotnet test calendar-service.sln --nologo --verbosity minimal

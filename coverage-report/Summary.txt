@@ -1,0 +1,60 @@
+Summary
+  Generated on: 4/21/2026 - 1:31:54 PM
+  Parser: OpenCover
+  Assemblies: 2
+  Classes: 37
+  Files: 26
+  Line coverage: 83.9%
+  Covered lines: 461
+  Uncovered lines: 88
+  Coverable lines: 549
+  Total lines: 1152
+  Branch coverage: 57% (57 of 100)
+  Covered branches: 57
+  Total branches: 100
+  Method coverage: 87.8% (145 of 165)
+  Full method coverage: 78.7% (130 of 165)
+  Covered methods: 145
+  Fully covered methods: 130
+  Total methods: 165
+
+CalendarioEntregas.Application                                                                           79.1%
+  CalendarioEntregas.Application.Calendario.AgregarDireccion.AgregarDireccionCommand                      100%
+  CalendarioEntregas.Application.Calendario.AgregarDireccion.AgregarDireccionHandler                       75%
+  CalendarioEntregas.Application.Calendario.CreateCalendario.CreateCalendarioCommand                      100%
+  CalendarioEntregas.Application.Calendario.CreateCalendario.CreateCalendarioHandler                       74%
+  CalendarioEntregas.Application.Calendario.DesactivarCalendario.DesactivarCalendarioCommand              100%
+  CalendarioEntregas.Application.Calendario.DesactivarCalendario.DesactivarCalendarioHandler             78.2%
+  CalendarioEntregas.Application.Calendario.GetCalendario.GetCalendarioHandler                            100%
+  CalendarioEntregas.Application.Calendario.GetCalendario.GetCalendarioQuery                              100%
+  CalendarioEntregas.Application.Calendario.ListarCalendarios.ListarCalendariosHandler                   68.7%
+  CalendarioEntregas.Application.Calendario.ListarCalendarios.ListarCalendariosQuery                      100%
+  CalendarioEntregas.Application.Calendario.MarcarDiaNoEntrega.MarcarDiaNoEntregaCommand                  100%
+  CalendarioEntregas.Application.Calendario.MarcarDiaNoEntrega.MarcarDiaNoEntregaHandler                 65.2%
+  CalendarioEntregas.Application.Calendario.ModificarDireccion.ModificarDireccionCommand                  100%
+  CalendarioEntregas.Application.Calendario.ModificarDireccion.ModificarDireccionHandler                 85.7%
+  CalendarioEntregas.Application.Calendario.ObtenerDireccionesActivas.ObtenerDireccionesActivasHandler   84.6%
+  CalendarioEntregas.Application.Calendario.ObtenerDireccionesActivas.ObtenerDireccionesActivasQuery      100%
+  CalendarioEntregas.Application.Calendario.ObtenerProximaEntrega.ObtenerProximaEntregaHandler           85.1%
+  CalendarioEntregas.Application.Calendario.ObtenerProximaEntrega.ObtenerProximaEntregaQuery              100%
+  CalendarioEntregas.Application.Calendario.Queries.CalendarioDto                                          60%
+  CalendarioEntregas.Application.Calendario.Queries.DireccionDto                                           40%
+  CalendarioEntregas.Application.Calendario.ReactivarEntrega.ReactivarEntregaCommand                      100%
+  CalendarioEntregas.Application.Calendario.ReactivarEntrega.ReactivarEntregaHandler                     78.2%
+  CalendarioEntregas.Application.DependencyInjection                                                        0%
+
+CalendarioEntregas.Domain                                                                                92.1%
+  CalendarioEntregas.Domain.Abstractions.AggregateRoot                                                     50%
+  CalendarioEntregas.Domain.Abstractions.Error                                                            100%
+  CalendarioEntregas.Domain.Abstractions.Result                                                             0%
+  CalendarioEntregas.Domain.Abstractions.Result<T>                                                        100%
+  CalendarioEntregas.Domain.Agregados.CalendarioEntrega                                                  95.4%
+  CalendarioEntregas.Domain.Agregados.Direccion                                                            98%
+  CalendarioEntregas.Domain.Eventos.CalendarioCreado                                                      100%
+  CalendarioEntregas.Domain.Eventos.CalendarioDesactivado                                                 100%
+  CalendarioEntregas.Domain.Eventos.DireccionAgregada                                                     100%
+  CalendarioEntregas.Domain.Eventos.DireccionModificada                                                   100%
+  CalendarioEntregas.Domain.Eventos.EntregaCancelada                                                      100%
+  CalendarioEntregas.Domain.Eventos.EntregaReactivada                                                     100%
+  CalendarioEntregas.Domain.ValueObjects.Latitud                                                          100%
+  CalendarioEntregas.Domain.ValueObjects.Longitud                                                        87.5%

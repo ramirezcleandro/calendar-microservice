@@ -23,7 +23,7 @@ services:
 
   # ─── Microservicio Calendario de Entregas ────────────────────────────────────
   calendario-webapi:
-    image: curbonato/calendario-webapi:1.0.1
+    image: curbonato/calendario-webapi:1.1.0
     container_name: calendario-webapi
     restart: unless-stopped
     ports:
@@ -37,12 +37,24 @@ services:
       Jwt__Key: "DiplomadoMicroservicios2025SecretoJTWApiSecurity"
       Jwt__Issuer: "api_security"
       Jwt__Audience: "*"
-      RabbitMQ__Host: "rabbitmq"
+      # RabbitMQ: apunta al broker compartido de la infra.
+      RabbitMQ__Host: "${INFRA_HOST}"
       RabbitMQ__Port: "5672"
       RabbitMQ__UserName: "admin"
-      RabbitMQ__Password: "StrongPassword123"
+      RabbitMQ__Password: "admin"
       RabbitMQ__VirtualHost: "/"
       RabbitMQ__DeadLetterExchange: "dead-letter-exchange"
+      # Tracing distribuido → Tempo/Collector central.
+      OTEL_EXPORTER_OTLP_ENDPOINT: "http://${INFRA_HOST}:4317"
+      # Logs estructurados → Loki central.
+      Loki__Uri: "http://${INFRA_HOST}:3100"
+      # Service discovery con Consul.
+      # DROPLET_IP es la IP pública de ESTE host para que Consul pueda hacer healthcheck.
+      Consul__Host: "http://${INFRA_HOST}:8500"
+      Consul__ServiceName: "calendario-webapi"
+      Consul__ServiceAddress: "${DROPLET_IP}"
+      Consul__ServicePort: "7020"
+      Consul__HealthCheckEndpoint: "/health"
     networks:
       - shared-network
 

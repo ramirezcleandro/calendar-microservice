@@ -25,6 +25,9 @@ jobs:
       - name: Install SonarScanner
         run: dotnet tool install --global dotnet-sonarscanner
 
+      - name: Install ReportGenerator
+        run: dotnet tool install --global dotnet-reportgenerator-globaltool
+
       - name: Restore dependencies
         run: dotnet restore calendar-service.sln
 
@@ -55,9 +58,25 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: dotnet sonarscanner end /d:sonar.token="${SONAR_TOKEN}"
 
+      - name: Generate coverage report
+        run: |
+          reportgenerator \
+            -reports:"**/coverage.opencover.xml" \
+            -targetdir:coverage-report \
+            -reporttypes:"Html;TextSummary"
+          cat coverage-report/Summary.txt
+
+      - name: Enforce 80% line coverage
+        run: |
+          LINE_COV=$(grep -oP 'Line coverage:\s*\K[0-9.]+' coverage-report/Summary.txt | head -1)
+          echo "Line coverage detectado: ${LINE_COV}%"
+          awk -v cov="$LINE_COV" 'BEGIN { if (cov+0 < 80) { print "Coverage " cov "% < 80% (gate fallido)"; exit 1 } else { print "Coverage OK (>= 80%)" } }'
+
       - name: Upload coverage artifact
         uses: actions/upload-artifact@v4
         with:
           name: code-coverage
-          path: "**/coverage.opencover.xml"
+          path: |
+            **/coverage.opencover.xml
+            coverage-report/
           retention-days: 30
