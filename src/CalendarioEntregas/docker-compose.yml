@@ -23,7 +23,7 @@ services:
 
   # ─── Microservicio Calendario de Entregas ────────────────────────────────────
   calendario-webapi:
-    image: curbonato/calendario-webapi:1.1.0
+    image: curbonato/calendario-webapi:latest
     container_name: calendario-webapi
     restart: unless-stopped
     ports:

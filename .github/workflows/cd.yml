@@ -1,4 +1,4 @@
-name: CD - Deploy to Render
+name: CD - Build image & deploy to Droplet
 
 on:
   workflow_run:
@@ -9,29 +9,62 @@ on:
 
 jobs:
   deploy:
-    name: Deploy to Production
+    name: Build, Push & Deploy
     runs-on: ubuntu-latest
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
 
     steps:
-      - name: Deploy to Render
-        run: |
-          echo "Triggering deploy to Render..."
-          curl -s -o /dev/null -w "%{http_code}" -X POST "${{ secrets.RENDER_DEPLOY_HOOK }}" | grep -q "200" && echo "Deploy triggered successfully" || (echo "Deploy trigger failed" && exit 1)
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./src/CalendarioEntregas
+          file: ./src/CalendarioEntregas/CalendarioEntregas.WebApi/Dockerfile
+          push: true
+          tags: |
+            curbonato/calendario-webapi:latest
+            curbonato/calendario-webapi:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Deploy to Droplet over SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.DROPLET_HOST }}
+          username: ${{ secrets.DROPLET_USER }}
+          key: ${{ secrets.DROPLET_SSH_KEY }}
+          script: |
+            set -e
+            cd /opt/calendar-service
+            git pull origin main
+            cd src/CalendarioEntregas
+            docker compose pull
+            docker compose up -d
+            docker image prune -f
 
       - name: Verify service health
         run: |
-          echo "Waiting 60 seconds for deploy to start..."
+          echo "Esperando 60s para que el servicio arranque..."
           sleep 60
-          echo "Checking health endpoint..."
           for i in $(seq 1 10); do
-            STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://calendar-microservice-nur.onrender.com/health)
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://${{ secrets.DROPLET_HOST }}:7020/health)
             if [ "$STATUS" = "200" ]; then
-              echo "Service is healthy!"
+              echo "Servicio healthy en el droplet"
               exit 0
             fi
-            echo "Attempt $i: status $STATUS, retrying in 30s..."
-            sleep 30
+            echo "Intento $i: status $STATUS, reintentando en 15s..."
+            sleep 15
           done
-          echo "Service health check failed after 10 attempts"
+          echo "Healthcheck falló despues de 10 intentos"
           exit 1
