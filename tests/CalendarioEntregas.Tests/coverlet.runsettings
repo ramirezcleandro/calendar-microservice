@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RunSettings>
+  <DataCollectionRunSettings>
+    <DataCollectors>
+      <DataCollector friendlyName="XPlat code coverage">
+        <Configuration>
+          <Format>opencover</Format>
+          <!--
+            Solo medimos cobertura sobre la logica de negocio (Domain + Application).
+            Infrastructure contiene EF Core, outbox handlers, messaging y el
+            hosted service de Consul: codigo de integracion que requiere pruebas
+            de integracion, no unit tests.
+          -->
+          <Include>[CalendarioEntregas.Application]*,[CalendarioEntregas.Domain]*</Include>
+        </Configuration>
+      </DataCollector>
+    </DataCollectors>
+  </DataCollectionRunSettings>
+</RunSettings>

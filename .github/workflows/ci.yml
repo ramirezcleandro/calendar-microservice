@@ -50,8 +50,8 @@ jobs:
           dotnet test calendar-service.sln \
             --no-build \
             --configuration Release \
-            --collect:"XPlat Code Coverage" \
-            -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=opencover
+            --settings tests/CalendarioEntregas.Tests/coverlet.runsettings \
+            --collect:"XPlat Code Coverage"
 
       - name: End SonarCloud analysis
         env:
