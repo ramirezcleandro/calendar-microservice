@@ -1,84 +1,46 @@
 using CalendarioEntregas.Domain.Abstractions;
-using CalendarioEntregas.Domain.Eventos;
-using CalendarioEntregas.Infrastructure.Messaging.IntegrationEvents;
 using CalendarioEntregas.Infrastructure.Persistence;
-using Joselct.Outbox.Core.Entities;
-using Joselct.Outbox.Core.Interfaces;
+using MediatR;
 
 namespace CalendarioEntregas.Infrastructure
 {
 	public class UnitOfWork : IUnitOfWork
 	{
 		private readonly CalendarioDbContext _context;
-		private readonly IOutboxRepository _outboxRepository;
+		private readonly IMediator _mediator;
 
-		public UnitOfWork(CalendarioDbContext context, IOutboxRepository outboxRepository)
+		public UnitOfWork(CalendarioDbContext context, IMediator mediator)
 		{
 			_context = context;
-			_outboxRepository = outboxRepository;
+			_mediator = mediator;
 		}
 
 		public async Task CommitAsync(CancellationToken cancellationToken = default)
 		{
-			// 1. Recopilar domain events antes de guardar
+			// 1. Recopilar domain events de los AggregateRoots trackeados.
 			var domainEvents = _context.ChangeTracker
 				.Entries<AggregateRoot>()
 				.SelectMany(e => e.Entity.DomainEvents)
 				.ToList();
 
+			// 2. Limpiar los eventos para no reemitirlos en el próximo commit.
 			_context.ChangeTracker
 				.Entries<AggregateRoot>()
 				.ToList()
 				.ForEach(e => e.Entity.ClearDomainEvents());
 
-			// 2. Guardar el aggregate
+			// 3. Persistir el aggregate.
 			await _context.SaveChangesAsync(cancellationToken);
 
-			// 3. Convertir domain events a integration events y guardar en outbox
+			// 4. Publicar cada domain event vía MediatR. Cada Handle<T> se encarga de
+			//    traducir al integration event correspondiente y guardar en el outbox.
+			//    Nuevo evento = nuevo handler, el UoW no cambia (Open/Closed Principle).
 			foreach (var domainEvent in domainEvents)
-				await SaveIntegrationEventAsync(domainEvent, cancellationToken);
+				await _mediator.Publish(domainEvent, cancellationToken);
 
-			// 4. Guardar los mensajes del outbox
+			// 5. Persistir los mensajes del outbox que quedaron en el ChangeTracker.
 			if (domainEvents.Any())
 				await _context.SaveChangesAsync(cancellationToken);
-		}
-
-		private async Task SaveIntegrationEventAsync(IDomainEvent domainEvent, CancellationToken ct)
-		{
-			OutboxMessage? outboxMessage = domainEvent switch
-			{
-				CalendarioCreado e => OutboxMessage.CreateWithCurrentTrace(
-					new CalendarioCreadoIntegrationEvent(
-						e.CalendarioId, e.PacienteId, e.PlanAlimenticioId,
-						e.FechaInicio, e.FechaFin)),
-
-				DireccionAgregada e => OutboxMessage.CreateWithCurrentTrace(
-					new DireccionAgregadaIntegrationEvent(
-						e.CalendarioId, e.DireccionId, e.Fecha,
-						e.Direccion, e.Latitud, e.Longitud)),
-
-				DireccionModificada e => OutboxMessage.CreateWithCurrentTrace(
-					new DireccionModificadaIntegrationEvent(
-						e.CalendarioId, e.DireccionId, e.Fecha,
-						e.NuevaDireccion, e.NuevaLatitud, e.NuevaLongitud)),
-
-				EntregaCancelada e => OutboxMessage.CreateWithCurrentTrace(
-					new EntregaCanceladaIntegrationEvent(
-						e.CalendarioId, e.DireccionId, e.Fecha)),
-
-				EntregaReactivada e => OutboxMessage.CreateWithCurrentTrace(
-					new EntregaReactivadaIntegrationEvent(
-						e.CalendarioId, e.DireccionId, e.Fecha)),
-
-				CalendarioDesactivado e => OutboxMessage.CreateWithCurrentTrace(
-					new CalendarioDesactivadoIntegrationEvent(
-						e.CalendarioId, e.PacienteId)),
-
-				_ => null
-			};
-
-			if (outboxMessage is not null)
-				await _outboxRepository.AddAsync(outboxMessage, ct);
 		}
 
 		public Task RollbackAsync(CancellationToken cancellationToken = default)
