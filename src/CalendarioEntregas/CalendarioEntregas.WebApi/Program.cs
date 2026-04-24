@@ -7,6 +7,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
+using Prometheus;
 using Serilog;
 using Serilog.Sinks.Grafana.Loki;
 using System.Text;
@@ -154,6 +155,9 @@ try
 
 	app.UseSerilogRequestLogging();
 
+	// Metricas Prometheus (requests, duraciones, status codes).
+	app.UseHttpMetrics();
+
 	// Swagger disponible en todos los ambientes
 	app.UseSwagger();
 	app.UseSwaggerUI();
@@ -164,6 +168,8 @@ try
 	app.UseAuthorization();
 
 	app.MapHealthChecks("/health");
+	// Endpoint /metrics que Prometheus scrape cada 15s.
+	app.MapMetrics();
 	app.MapControllers();
 
 	app.Run();
