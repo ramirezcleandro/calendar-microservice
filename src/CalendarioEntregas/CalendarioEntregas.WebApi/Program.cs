@@ -1,6 +1,7 @@
 using CalendarioEntregas.Application;
 using CalendarioEntregas.Infrastructure;
 using CalendarioEntregas.Infrastructure.Persistence;
+using Joselct.Communication.RabbitMQ.Extensions;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -48,14 +49,13 @@ builder.WebHost.ConfigureKestrel(options =>
 	options.ListenAnyIP(port);
 });
 
-// OpenTelemetry — tracing distribuido propagado por HTTP y por MassTransit/RabbitMQ
+// OpenTelemetry — tracing distribuido propagado por HTTP y por Joselct/RabbitMQ
 var otlpEndpoint = Environment.GetEnvironmentVariable("OTEL_EXPORTER_OTLP_ENDPOINT");
 builder.Services.AddOpenTelemetry()
 	.ConfigureResource(r => r.AddService(ServiceName))
 	.WithTracing(tracing =>
 	{
 		tracing
-			.AddSource("MassTransit")
 			.AddAspNetCoreInstrumentation()
 			.AddHttpClientInstrumentation()
 			.AddEntityFrameworkCoreInstrumentation(o => o.SetDbStatementForText = true);
@@ -65,7 +65,8 @@ builder.Services.AddOpenTelemetry()
 
 		if (!string.IsNullOrWhiteSpace(otlpEndpoint))
 			tracing.AddOtlpExporter(o => o.Endpoint = new Uri(otlpEndpoint));
-	});
+	})
+	.AddRabbitMqInstrumentation();
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
