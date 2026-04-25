@@ -15,7 +15,7 @@
     </PackageReference>
     <PackageReference Include="Joselct.Outbox.EFCore" Version="1.0.4" />
     <PackageReference Include="Joselct.Outbox.MediatR" Version="1.0.5" />
-    <PackageReference Include="Joselct.Communication.RabbitMQ" Version="1.0.5" />
+    <PackageReference Include="Joselct.Communication.RabbitMQ" Version="1.0.8" />
     <PackageReference Include="MediatR" Version="14.1.0" />
     <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="8.0.0" />
     <PackageReference Include="Consul" Version="1.8.0" />
