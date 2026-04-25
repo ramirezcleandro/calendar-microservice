@@ -13,6 +13,6 @@ namespace CalendarioEntregas.Infrastructure.Messaging.OutboxHandlers
 		public PublishDireccionAgregada(IExternalPublisher publisher) => _publisher = publisher;
 
 		public Task Handle(OutboxMessageNotification<DireccionAgregadaIntegrationEvent> notification, CancellationToken ct)
-			=> _publisher.PublishAsync(notification.Content, destination: "calendar", routingKey: "calendar.address.added", ct: ct);
+			=> _publisher.PublishAsync(notification.Content, destination: "calendar", routingKey: "calendar.addressadded", ct: ct);
 	}
 }

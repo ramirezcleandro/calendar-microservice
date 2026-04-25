@@ -13,6 +13,6 @@ namespace CalendarioEntregas.Infrastructure.Messaging.OutboxHandlers
 		public PublishEntregaReactivada(IExternalPublisher publisher) => _publisher = publisher;
 
 		public Task Handle(OutboxMessageNotification<EntregaReactivadaIntegrationEvent> notification, CancellationToken ct)
-			=> _publisher.PublishAsync(notification.Content, destination: "calendar", routingKey: "calendar.delivery.reactivated", ct: ct);
+			=> _publisher.PublishAsync(notification.Content, destination: "calendar", routingKey: "calendar.deliveryreactivated", ct: ct);
 	}
 }
