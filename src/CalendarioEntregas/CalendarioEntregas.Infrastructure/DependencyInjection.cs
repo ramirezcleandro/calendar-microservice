@@ -46,13 +46,6 @@ namespace CalendarioEntregas.Infrastructure
 				routingKey: "meal-plan.plan",
 				declareQueue: false);
 
-			// Consumer: escucha patient.* desde ms-calendar-queue (requerido por el binding de la infra)
-			services.AddRabbitMqConsumer<PatientIntegrationEvent, PatientEventConsumer>(
-				queueName: "ms-calendar-queue",
-				exchangeName: "patients",
-				routingKey: "patient.*",
-				declareQueue: false);
-
 			// Worker del outbox (polling y dispatch vía MediatR)
 			services.AddOutboxWorker();
 
