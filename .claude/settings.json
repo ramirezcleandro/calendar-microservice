@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(gh api *)",
+      "PowerShell(gh api repos/JoseLCT/ms-logistic/contents/ --jq '.[] | {name: .name, type: .type}')",
+      "WebFetch(domain:api.github.com)"
+    ]
+  }
+}
