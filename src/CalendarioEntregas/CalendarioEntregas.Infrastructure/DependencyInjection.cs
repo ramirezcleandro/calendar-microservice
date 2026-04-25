@@ -39,11 +39,11 @@ namespace CalendarioEntregas.Infrastructure
 			// RabbitMQ (Joselct) — publisher + connection manager
 			services.AddRabbitMq(configuration);
 
-			// Consumer: escucha meal-plan.created desde ms-calendar-queue
+			// Consumer: escucha meal-plan.plan desde ms-calendar-queue
 			services.AddRabbitMqConsumer<PlanAlimenticioCreadoIntegrationEvent, PlanAlimenticioCreadoConsumer>(
 				queueName: "ms-calendar-queue",
 				exchangeName: "meal-plans",
-				routingKey: "meal-plan.created",
+				routingKey: "meal-plan.plan",
 				declareQueue: false);
 
 			// Consumer: escucha patient.* desde ms-calendar-queue (requerido por el binding de la infra)
