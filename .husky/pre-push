@@ -1,0 +1,14 @@
+#!/bin/sh
+# Pre-push: bloquea el push si algún archivo no respeta el .editorconfig
+# (p. ej. indentación con espacios en lugar de tabs).
+
+set -e
+
+echo "→ Verificando formato (tabs / .editorconfig)"
+if ! dotnet format whitespace calendar-service.sln --verify-no-changes --verbosity quiet; then
+	echo "✗ Hay archivos con formato inválido. Ejecuta: dotnet format whitespace calendar-service.sln"
+	exit 1
+fi
+
+echo "→ Build con analizadores (SonarAnalyzer)"
+dotnet build calendar-service.sln --nologo --verbosity quiet

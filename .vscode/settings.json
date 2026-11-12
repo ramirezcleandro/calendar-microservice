@@ -1,0 +1,19 @@
+{
+	// Forzar tabs (coherente con .editorconfig)
+	"editor.insertSpaces": false,
+	"editor.detectIndentation": false,
+	"editor.tabSize": 4,
+	"editor.renderWhitespace": "boundary",
+	"editor.formatOnSave": true,
+	"files.trimTrailingWhitespace": true,
+	"files.insertFinalNewline": true,
+
+	// Linter C#: analizadores Roslyn + .editorconfig
+	"dotnet.codeAnalysis.analyzerDiagnosticsScope": "fullSolution",
+	"dotnet.formatting.organizeImportsOnFormat": true,
+	"omnisharp.enableEditorConfigSupport": true,
+	"omnisharp.enableRoslynAnalyzers": true,
+
+	// SonarLint
+	"sonarlint.rules": {}
+}
