@@ -1,5 +1,9 @@
 # Microservicio: Calendario de Entregas
 
+[![CI](https://github.com/ramirezcleandro/calendar-microservice/actions/workflows/ci.yml/badge.svg)](https://github.com/ramirezcleandro/calendar-microservice/actions/workflows/ci.yml)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=ramirezcleandro_calendar-microservice&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=ramirezcleandro_calendar-microservice)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=ramirezcleandro_calendar-microservice&metric=coverage)](https://sonarcloud.io/summary/new_code?id=ramirezcleandro_calendar-microservice)
+
 Gestiona los calendarios de entrega de alimentos para pacientes del sistema NutriCenter. Cuando un plan alimenticio es creado, este microservicio genera automáticamente el calendario correspondiente y publica los cambios al resto del sistema a través de RabbitMQ.
 
 **Stack:** .NET 8 · PostgreSQL · RabbitMQ · MassTransit · Docker

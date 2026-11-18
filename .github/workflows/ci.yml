@@ -13,12 +13,12 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0  # Full history for SonarCloud
 
       - name: Setup .NET 8
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v5
         with:
           dotnet-version: '8.0.x'
 
@@ -40,7 +40,9 @@ jobs:
             /o:"ramirezcleandro" \
             /d:sonar.host.url="https://sonarcloud.io" \
             /d:sonar.token="${SONAR_TOKEN}" \
-            /d:sonar.cs.opencover.reportsPaths="**/coverage.opencover.xml"
+            /d:sonar.cs.opencover.reportsPaths="**/coverage.opencover.xml" \
+            /d:sonar.exclusions="**/Migrations/**,**/bin/**,**/obj/**" \
+            /d:sonar.coverage.exclusions="**/CalendarioEntregas.Infrastructure/**,**/CalendarioEntregas.WebApi/**,tests/**"
 
       - name: Build
         run: dotnet build calendar-service.sln --no-restore --configuration Release
@@ -73,7 +75,7 @@ jobs:
           awk -v cov="$LINE_COV" 'BEGIN { if (cov+0 < 80) { print "Coverage " cov "% < 80% (gate fallido)"; exit 1 } else { print "Coverage OK (>= 80%)" } }'
 
       - name: Upload coverage artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: code-coverage
           path: |
