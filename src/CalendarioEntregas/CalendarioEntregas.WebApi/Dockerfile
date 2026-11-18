@@ -24,4 +24,7 @@ COPY --from=publish /app/publish .
 
 EXPOSE 7020 7021
 
+# Ejecutar como usuario sin privilegios (definido en la imagen aspnet:8.0, UID 1654)
+USER $APP_UID
+
 ENTRYPOINT ["dotnet", "CalendarioEntregas.WebApi.dll"]
